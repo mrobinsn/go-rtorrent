@@ -3,10 +3,12 @@
 rTorrent XMLRPC Bindings for Go
 
 ## Installation
-To install the package run `go get github.com/michaeltrobinson/go-rtorrent`
+To install the package, run `go get github.com/michaeltrobinson/go-rtorrent`
 
 To use
-it in application import `"github.com/michaeltrobinson/go-rtorrent"`
+it in application, import `"github.com/michaeltrobinson/go-rtorrent/rtorrent"`
+
+To install the command line utility, run `go install "github.com/michaeltrobinson/go-rtorrent"`
 
 ## Library Usage
 
@@ -17,7 +19,7 @@ it in application import `"github.com/michaeltrobinson/go-rtorrent"`
 ## Command Line Utility
 A basic command line utility is included
 
-`go run main.go`
+`go-rtorrent`
 
     NAME:
        rTorrent XMLRPC CLI - A new cli application
