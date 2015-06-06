@@ -22,25 +22,26 @@ A basic command line utility is included
 `go-rtorrent`
 
     NAME:
-       rTorrent XMLRPC CLI - A new cli application
+    rTorrent XMLRPC CLI - A new cli application
 
     USAGE:
-       rTorrent XMLRPC CLI [global options] command [command options] [arguments...]
+    rTorrent XMLRPC CLI [global options] command [command options] [arguments...]
 
     VERSION:
-       0.0.1
+    0.0.2
 
     AUTHOR(S):
-       Michael Robinson <mrobinson@outlook.com>
+    Michael Robinson <mrobinson@outlook.com>
 
     COMMANDS:
-       get-ip	retrieves the IP for this rTorrent instance
-       get-name	retrieves the name for this rTorrent instance
-       get-totals	retrieves the up/down totals for this rTorrent instance
-       help, h	Shows a list of commands or help for one command
+    get-ip	retrieves the IP for this rTorrent instance
+    get-name	retrieves the name for this rTorrent instance
+    get-totals	retrieves the up/down totals for this rTorrent instance
+    get-torrents	retrieves the torrents from this rTorrent instance
+    help, h	Shows a list of commands or help for one command
 
     GLOBAL OPTIONS:
-       --endpoint "http://myrtorrent/RPC2"	rTorrent endpoint
-       --disable-cert-check			disable certificate checking on this endpoint, useful for testing
-       --help, -h				show help
-       --version, -v			print the version
+    --endpoint "http://myrtorrent/RPC2"	rTorrent endpoint
+    --disable-cert-check			disable certificate checking on this endpoint, useful for testing
+    --help, -h				show help
+    --version, -v			print the version
