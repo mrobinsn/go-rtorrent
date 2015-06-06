@@ -10,7 +10,7 @@ import (
 
 var (
 	name    = "rTorrent XMLRPC CLI"
-	version = "0.0.2"
+	version = "0.0.3"
 	app     = initApp()
 	conn    *rtorrent.RTorrent
 )
@@ -64,6 +64,18 @@ func initApp() *cli.App {
 				Name:  "view",
 				Usage: "view to use, known values: main, started, stopped, hashing, seeding",
 				Value: string(rtorrent.ViewMain),
+			},
+		},
+	}, {
+		Name:   "get-files",
+		Usage:  "retrieves the files for a specific torrent",
+		Action: getFiles,
+		Before: setupConnection,
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "hash",
+				Usage: "hash of the torrent",
+				Value: "unknown",
 			},
 		},
 	},
@@ -125,6 +137,18 @@ func getTorrents(c *cli.Context) {
 	} else {
 		for _, torrent := range torrents {
 			fmt.Printf("[INFO] %v\n", torrent.Pretty())
+		}
+	}
+}
+
+func getFiles(c *cli.Context) {
+	files, err := conn.GetFiles(rtorrent.Torrent{Hash: c.String("hash")})
+	if err != nil {
+		fmt.Printf("[ERR] Error getting files: %v\n", err)
+	} else {
+		fmt.Printf("[INFO] found %v files\n", len(files))
+		for _, file := range files {
+			fmt.Printf("[INFO] %v\n", file.Pretty())
 		}
 	}
 }
