@@ -28,7 +28,7 @@ A basic command line utility is included
     rTorrent XMLRPC CLI [global options] command [command options] [arguments...]
 
     VERSION:
-    0.0.2
+    0.0.3
 
     AUTHOR(S):
     Michael Robinson <mrobinson@outlook.com>
@@ -38,10 +38,11 @@ A basic command line utility is included
     get-name	retrieves the name for this rTorrent instance
     get-totals	retrieves the up/down totals for this rTorrent instance
     get-torrents	retrieves the torrents from this rTorrent instance
+    get-files	retrieves the files for a specific torrent
     help, h	Shows a list of commands or help for one command
 
     GLOBAL OPTIONS:
     --endpoint "http://myrtorrent/RPC2"	rTorrent endpoint
     --disable-cert-check			disable certificate checking on this endpoint, useful for testing
     --help, -h				show help
-    --version, -v			print the version
+    --version, -v			print the version`
