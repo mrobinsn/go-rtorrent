@@ -22,6 +22,12 @@ type Torrent struct {
 	Ratio     float64
 }
 
+// File represents a file in rTorrent
+type File struct {
+	Path string
+	Size int
+}
+
 // View represents a "view" within RTorrent
 type View string
 
@@ -41,6 +47,11 @@ const (
 // Pretty returns a formatted string representing this Torrent
 func (t *Torrent) Pretty() string {
 	return fmt.Sprintf("Torrent:\n\tHash: %v\n\tName: %v\n\tPath: %v\n\tLabel: %v\n\tSize: %v bytes\n\tCompleted: %v\n\tRatio: %v\n", t.Hash, t.Name, t.Path, t.Label, t.Size, t.Completed, t.Ratio)
+}
+
+// Pretty returns a formatted string representing this File
+func (f *File) Pretty() string {
+	return fmt.Sprintf("File:\n\tPath: %v\n\tSize: %v bytes\n", f.Path, f.Size)
 }
 
 // New returns a new instance of `RTorrent`
@@ -77,10 +88,12 @@ func (r *RTorrent) UpTotal() (int, error) {
 
 // GetTorrents returns all of the torrents reported by this RTorrent instance
 func (r *RTorrent) GetTorrents(view View) ([]Torrent, error) {
-	//TODO: Parameterize these into constants
 	args := []interface{}{string(view), "d.get_name=", "d.get_size_bytes=", "d.get_hash=", "d.get_custom1=", "d.get_base_path=", "d.is_active=", "d.get_complete=", "d.get_ratio="}
 	results, err := r.xmlrpcClient.Call("d.multicall", args...)
 	var torrents []Torrent
+	if err != nil {
+		return torrents, err
+	}
 	for _, outerResult := range results.([]interface{}) {
 		for _, innerResult := range outerResult.([]interface{}) {
 			torrentData := innerResult.([]interface{})
@@ -95,5 +108,25 @@ func (r *RTorrent) GetTorrents(view View) ([]Torrent, error) {
 			})
 		}
 	}
-	return torrents, err
+	return torrents, nil
+}
+
+// GetFiles returns all of the files for a given `Torrent`
+func (r *RTorrent) GetFiles(torrent Torrent) ([]File, error) {
+	args := []interface{}{torrent.Hash, 0, "f.get_path=", "f.get_size_bytes="}
+	results, err := r.xmlrpcClient.Call("f.multicall", args...)
+	var files []File
+	if err != nil {
+		return files, err
+	}
+	for _, outerResult := range results.([]interface{}) {
+		for _, innerResult := range outerResult.([]interface{}) {
+			fileData := innerResult.([]interface{})
+			files = append(files, File{
+				Path: fileData[0].(string),
+				Size: fileData[1].(int),
+			})
+		}
+	}
+	return files, nil
 }
