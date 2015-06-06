@@ -10,7 +10,7 @@ import (
 
 var (
 	name    = "rTorrent XMLRPC CLI"
-	version = "0.0.1"
+	version = "0.0.2"
 	app     = initApp()
 	conn    *rtorrent.RTorrent
 )
@@ -54,6 +54,18 @@ func initApp() *cli.App {
 		Usage:  "retrieves the up/down totals for this rTorrent instance",
 		Action: getTotals,
 		Before: setupConnection,
+	}, {
+		Name:   "get-torrents",
+		Usage:  "retrieves the torrents from this rTorrent instance",
+		Action: getTorrents,
+		Before: setupConnection,
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "view",
+				Usage: "view to use, known values: main, started, stopped, hashing, seeding",
+				Value: string(rtorrent.ViewMain),
+			},
+		},
 	},
 	}
 
@@ -65,14 +77,9 @@ func main() {
 }
 
 func setupConnection(c *cli.Context) error {
-	rTorrentConn, err := rtorrent.New(c.GlobalString("endpoint"), c.GlobalBool("disable-cert-check"))
-	if err != nil {
-		fmt.Printf("[ERR] Error creating rTorrent connection: %v\n", err)
-	}
-
+	rTorrentConn := rtorrent.New(c.GlobalString("endpoint"), c.GlobalBool("disable-cert-check"))
 	conn = rTorrentConn
-
-	return err
+	return nil
 }
 
 func getIP(c *cli.Context) {
@@ -80,7 +87,7 @@ func getIP(c *cli.Context) {
 	if err != nil {
 		fmt.Printf("[ERR] Error getting rTorrent IP: %v\n", err)
 	} else {
-		fmt.Printf("[INFO] rTorrent IP: %v\n", *ip)
+		fmt.Printf("[INFO] rTorrent IP: %v\n", ip)
 	}
 }
 
@@ -89,7 +96,7 @@ func getName(c *cli.Context) {
 	if err != nil {
 		fmt.Printf("[ERR] Error getting rTorrent name: %v\n", err)
 	} else {
-		fmt.Printf("[INFO] rTorrent name: %v\n", *name)
+		fmt.Printf("[INFO] rTorrent name: %v\n", name)
 	}
 }
 
@@ -108,5 +115,16 @@ func getTotals(c *cli.Context) {
 		fmt.Printf("[ERR] Error getting rTorrent up total: %v\n", err)
 	} else {
 		fmt.Printf("[INFO] rTorrent up total: %v bytes\n", upTotal)
+	}
+}
+
+func getTorrents(c *cli.Context) {
+	torrents, err := conn.GetTorrents(rtorrent.View(c.String("view")))
+	if err != nil {
+		fmt.Printf("[ERR] Error getting torrents: %v\n", err)
+	} else {
+		for _, torrent := range torrents {
+			fmt.Printf("[INFO] %v\n", torrent.Pretty())
+		}
 	}
 }
