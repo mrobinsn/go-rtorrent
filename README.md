@@ -1,6 +1,6 @@
 
 # go-rtorrent
-rTorrent XMLRPC Bindings for Go
+rTorrent XMLRPC Bindings for Go (golang)
 
 ## Documentation
 https://godoc.org/github.com/michaeltrobinson/go-rtorrent/rtorrent
