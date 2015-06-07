@@ -2,6 +2,9 @@
 # go-rtorrent
 rTorrent XMLRPC Bindings for Go
 
+## Documentation
+https://godoc.org/github.com/michaeltrobinson/go-rtorrent/rtorrent
+
 ## Installation
 To install the package, run `go get github.com/michaeltrobinson/go-rtorrent`
 
