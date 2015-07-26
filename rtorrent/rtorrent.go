@@ -3,7 +3,7 @@ package rtorrent
 import (
 	"fmt"
 
-	"github.com/michaeltrobinson/go-rtorrent/xmlrpc"
+	"github.com/tehjojo/go-rtorrent/xmlrpc"
 )
 
 // RTorrent is used to communicate with a remote rTorrent instance

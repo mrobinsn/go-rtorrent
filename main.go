@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/codegangsta/cli"
-	"github.com/michaeltrobinson/go-rtorrent/rtorrent"
+	"github.com/tehjojo/go-rtorrent/rtorrent"
 )
 
 var (
