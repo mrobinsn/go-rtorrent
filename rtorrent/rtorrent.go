@@ -112,8 +112,8 @@ func (r *RTorrent) GetTorrents(view View) ([]Torrent, error) {
 }
 
 // GetFiles returns all of the files for a given `Torrent`
-func (r *RTorrent) GetFiles(torrent Torrent) ([]File, error) {
-	args := []interface{}{torrent.Hash, 0, "f.get_path=", "f.get_size_bytes="}
+func (r *RTorrent) GetFiles(t Torrent) ([]File, error) {
+	args := []interface{}{t.Hash, 0, "f.get_path=", "f.get_size_bytes="}
 	results, err := r.xmlrpcClient.Call("f.multicall", args...)
 	var files []File
 	if err != nil {
@@ -129,4 +129,14 @@ func (r *RTorrent) GetFiles(torrent Torrent) ([]File, error) {
 		}
 	}
 	return files, nil
+}
+
+// SetLabel sets the label on the given Torrent
+func (r *RTorrent) SetLabel(t Torrent, newLabel string) error {
+	t.Label = newLabel
+	args := []interface{}{t.Hash, newLabel}
+	if _, err := r.xmlrpcClient.Call("d.set_custom1", args...); err != nil {
+		return err
+	}
+	return nil
 }
