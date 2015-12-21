@@ -71,6 +71,15 @@ func (r *RTorrent) Add(url string) error {
 	return nil
 }
 
+// AddTorrent adds a new torrent by the torrent files data
+func (r *RTorrent) AddTorrent(data []byte) error {
+	_, err := r.xmlrpcClient.Call("load_raw_start", data)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // IP returns the IP reported by this RTorrent instance
 func (r *RTorrent) IP() (string, error) {
 	result, err := r.xmlrpcClient.Call("get_ip")
