@@ -6,11 +6,13 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/tehjojo/go-rtorrent/rtorrent"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 var (
 	name    = "rTorrent XMLRPC CLI"
-	version = "0.0.3"
+	version = "0.4.0"
 	app     = initApp()
 	conn    *rtorrent.RTorrent
 )
@@ -97,18 +99,18 @@ func setupConnection(c *cli.Context) error {
 func getIP(c *cli.Context) {
 	ip, err := conn.IP()
 	if err != nil {
-		fmt.Printf("[ERR] Error getting rTorrent IP: %v\n", err)
+		log.WithError(err).Error("error getting rTorrent IP")
 	} else {
-		fmt.Printf("[INFO] rTorrent IP: %v\n", ip)
+		fmt.Println(ip)
 	}
 }
 
 func getName(c *cli.Context) {
 	name, err := conn.Name()
 	if err != nil {
-		fmt.Printf("[ERR] Error getting rTorrent name: %v\n", err)
+		log.WithError(err).Error("error getting rTorrent name")
 	} else {
-		fmt.Printf("[INFO] rTorrent name: %v\n", name)
+		fmt.Println(name)
 	}
 }
 
@@ -116,27 +118,27 @@ func getTotals(c *cli.Context) {
 	// Get Down Total
 	downTotal, err := conn.DownTotal()
 	if err != nil {
-		fmt.Printf("[ERR] Error getting rTorrent down total: %v\n", err)
+		log.WithError(err).Error("error getting rTorrent down total")
 	} else {
-		fmt.Printf("[INFO] rTorrent down total: %v bytes\n", downTotal)
+		fmt.Printf("%d\n", downTotal)
 	}
 
 	// Get Up Total
 	upTotal, err := conn.UpTotal()
 	if err != nil {
-		fmt.Printf("[ERR] Error getting rTorrent up total: %v\n", err)
+		log.WithError(err).Error("error getting rTorrent up total")
 	} else {
-		fmt.Printf("[INFO] rTorrent up total: %v bytes\n", upTotal)
+		fmt.Printf("%d\n", upTotal)
 	}
 }
 
 func getTorrents(c *cli.Context) {
 	torrents, err := conn.GetTorrents(rtorrent.View(c.String("view")))
 	if err != nil {
-		fmt.Printf("[ERR] Error getting torrents: %v\n", err)
+		log.WithError(err).Error("error getting torrents")
 	} else {
 		for _, torrent := range torrents {
-			fmt.Printf("[INFO] %v\n", torrent.Pretty())
+			fmt.Println(torrent.Pretty())
 		}
 	}
 }
@@ -144,11 +146,14 @@ func getTorrents(c *cli.Context) {
 func getFiles(c *cli.Context) {
 	files, err := conn.GetFiles(rtorrent.Torrent{Hash: c.String("hash")})
 	if err != nil {
-		fmt.Printf("[ERR] Error getting files: %v\n", err)
+		log.WithError(err).Error("error getting files")
 	} else {
-		fmt.Printf("[INFO] found %v files\n", len(files))
+		log.WithFields(log.Fields{
+			"torrent_hash": c.String("hash"),
+			"num":          len(files),
+		}).Info("found files", len(files))
 		for _, file := range files {
-			fmt.Printf("[INFO] %v\n", file.Pretty())
+			fmt.Println(file.Pretty())
 		}
 	}
 }
