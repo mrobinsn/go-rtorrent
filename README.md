@@ -23,7 +23,7 @@ To install the command line utility, run `go install "github.com/tehjojo/go-rtor
 ```
 conn, _ := rtorrent.New("http://my-rtorrent.com/RPC2", false)
 name, _ := conn.Name()
-fmt.Printf("My rTorrent's name: %v", name
+fmt.Printf("My rTorrent's name: %v", name)
 ```
 
 ## Command Line Utility
