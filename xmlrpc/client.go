@@ -11,6 +11,8 @@ import (
 type Client struct {
 	addr       string
 	httpClient *http.Client
+	username   string
+	password   string
 }
 
 // NewClient returns a new instance of Client
@@ -31,15 +33,33 @@ func NewClient(addr string, insecure bool) *Client {
 	}
 }
 
+// SetBasicAuth sets the request's HTTP basic authentication
+func (c *Client) SetBasicAuth(username string, password string) {
+	c.username = username
+	c.password = password
+}
+
 // Call calls the method with "name" with the given args
 // Returns the result, and an error for communication errors
 func (c *Client) Call(name string, args ...interface{}) (interface{}, error) {
-	req := bytes.NewBuffer(nil)
-	e := Marshal(req, name, args...)
+	postBody := bytes.NewBuffer(nil)
+	e := Marshal(postBody, name, args...)
 	if e != nil {
 		return nil, e
 	}
-	r, e := c.httpClient.Post(c.addr, "text/xml", req)
+
+	req, e := http.NewRequest(http.MethodPost, c.addr, postBody)
+	if e != nil {
+		return nil, e
+	}
+
+	req.Header.Set("Content-Type", "text/xml")
+
+	if c.username != "" || c.password != "" {
+		req.SetBasicAuth(c.username, c.password)
+	}
+
+	r, e := c.httpClient.Do(req)
 	if e != nil {
 		return nil, e
 	}

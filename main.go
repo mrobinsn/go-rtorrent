@@ -37,6 +37,16 @@ func initApp() *cli.App {
 			Name:  "disable-cert-check",
 			Usage: "disable certificate checking on this endpoint, useful for testing",
 		},
+		cli.StringFlag{
+			Name:  "username",
+			Usage: "rTorrent basic auth username",
+			Value: "",
+		},
+		cli.StringFlag{
+			Name:  "password",
+			Usage: "rTorrent basic auth password",
+			Value: "",
+		},
 	}
 
 	app.Before = setupConnection
@@ -92,6 +102,13 @@ func main() {
 
 func setupConnection(c *cli.Context) error {
 	rTorrentConn := rtorrent.New(c.GlobalString("endpoint"), c.GlobalBool("disable-cert-check"))
+	username := c.GlobalString("username")
+	password := c.GlobalString("password")
+
+	if username != "" || password != "" {
+		rTorrentConn.SetAuth(username, password)
+	}
+
 	conn = rTorrentConn
 	return nil
 }

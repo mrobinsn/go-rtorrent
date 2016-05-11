@@ -62,6 +62,11 @@ func New(addr string, insecure bool) *RTorrent {
 	}
 }
 
+// SetAuth sets the authentication for communicating with rTorrent
+func (r *RTorrent) SetAuth(username string, password string) {
+	r.xmlrpcClient.SetBasicAuth(username, password)
+}
+
 // Add adds a new torrent by URL
 func (r *RTorrent) Add(url string) error {
 	_, err := r.xmlrpcClient.Call("load_start", url)
