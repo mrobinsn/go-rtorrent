@@ -2,7 +2,7 @@
 > rTorrent XMLRPC Bindings for Go (golang)
 
 ## Documentation
-[https://godoc.org/github.com/tehjojo/go-rtorrent/rtorrent](https://godoc.org/github.com/tehjojo/go-rtorrent/rtorrent)
+[https://godoc.org/github.com/mrobinsn/go-rtorrent/rtorrent](https://godoc.org/github.com/mrobinsn/go-rtorrent/rtorrent)
 
 ## Features
 - Get IP, Name, Up/Down totals
@@ -12,11 +12,11 @@
 - Add a torrent by URL or by metadata
 
 ## Installation
-To install the package, run `go get github.com/tehjojo/go-rtorrent`
+To install the package, run `go get github.com/mrobinsn/go-rtorrent`
 
-To use it in application, import `"github.com/tehjojo/go-rtorrent/rtorrent"`
+To use it in application, import `"github.com/mrobinsn/go-rtorrent/rtorrent"`
 
-To install the command line utility, run `go install "github.com/tehjojo/go-rtorrent"`
+To install the command line utility, run `go install "github.com/mrobinsn/go-rtorrent"`
 
 ## Library Usage
 
