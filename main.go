@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/codegangsta/cli"
-	"github.com/tehjojo/go-rtorrent/rtorrent"
+	"github.com/mrobinsn/go-rtorrent/rtorrent"
 
 	log "github.com/Sirupsen/logrus"
 )
