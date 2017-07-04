@@ -2,7 +2,6 @@ package xmlrpc
 
 import (
 	"bytes"
-	"crypto/tls"
 	"fmt"
 	"net/http"
 )
@@ -14,17 +13,7 @@ type Client struct {
 }
 
 // NewClient returns a new instance of Client
-// Pass in a true value for `insecure` to turn off certificate verification
-func NewClient(addr string, insecure bool) *Client {
-	transport := &http.Transport{}
-	if insecure {
-		transport = &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
-	}
-
-	httpClient := &http.Client{Transport: transport}
-
+func NewClient(addr string, httpClient *http.Client) *Client {
 	return &Client{
 		addr:       addr,
 		httpClient: httpClient,
