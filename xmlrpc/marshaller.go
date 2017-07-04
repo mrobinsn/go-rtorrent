@@ -526,7 +526,7 @@ func WriteXML(w io.Writer, v interface{}, typ bool) (err error) {
 			if _, err = io.WriteString(w, "<member><name>"); err != nil {
 				return
 			}
-			if _, err = io.WriteString(w, xmlEscape(t.Field(i).Name)); err != nil {
+			if _, err = io.WriteString(w, xmlEscape(getStructFieldName(t.Field(i)))); err != nil {
 				return
 			}
 			if _, err = io.WriteString(w, "</name><value>"); err != nil {
@@ -572,6 +572,14 @@ func taggedWriteString(w io.Writer, tag, inner string) (n int, err error) {
 	j, err = io.WriteString(w, "</"+tag+">")
 	n += j
 	return
+}
+
+func getStructFieldName(sf reflect.StructField) string {
+	if sf.Tag.Get("xml") == "" {
+		return sf.Name
+	} else {
+		return sf.Tag.Get("xml")
+	}
 }
 
 // Marshal marshals the named thing (methodResponse if name == "", otherwise a methodCall)
