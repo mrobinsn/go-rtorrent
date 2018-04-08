@@ -1,0 +1,8 @@
+language: go
+go:
+  - stable
+before_install:
+  - go get -u github.com/mattn/goveralls
+script:
+  - go vet ./...
+  - goveralls -race -v -show -service=travis-ci
