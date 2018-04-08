@@ -36,9 +36,8 @@ func SetLogger(lgr *log.Logger) *log.Logger {
 	return old
 }
 
-// Unsupported is the error of "Unsupported type"
+// ErrUnsupported is the error of "Unsupported type"
 var ErrUnsupported = errors.New("Unsupported type")
-var errLevelDecremented = errors.New("level decremented")
 
 // Fault is the struct for the fault response
 type Fault struct {

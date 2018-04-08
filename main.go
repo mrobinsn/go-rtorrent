@@ -4,156 +4,163 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/codegangsta/cli"
+	"github.com/apex/log"
 	"github.com/mrobinsn/go-rtorrent/rtorrent"
-
-	log "github.com/Sirupsen/logrus"
+	"github.com/pkg/errors"
+	"github.com/urfave/cli"
 )
 
 var (
 	name    = "rTorrent XMLRPC CLI"
-	version = "0.4.0"
+	version = "0.5.0"
 	app     = initApp()
 	conn    *rtorrent.RTorrent
+
+	endpoint         string
+	view             string
+	hash             string
+	disableCertCheck bool
 )
 
 func initApp() *cli.App {
-	app := cli.NewApp()
+	nApp := cli.NewApp()
 
-	app.Name = name
-	app.Version = version
-	app.Authors = []cli.Author{
-		{Name: "Michael Robinson", Email: "mrobinson@outlook.com"},
+	nApp.Name = name
+	nApp.Version = version
+	nApp.Authors = []cli.Author{
+		{Name: "Michael Robinson", Email: "m@michaelrobinson.io"},
 	}
 
 	// Global flags
-	app.Flags = []cli.Flag{
+	nApp.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name:  "endpoint",
-			Usage: "rTorrent endpoint",
-			Value: "http://myrtorrent/RPC2",
+			Name:        "endpoint",
+			Usage:       "rTorrent endpoint",
+			Value:       "http://myrtorrent/RPC2",
+			Destination: &endpoint,
 		},
 		cli.BoolFlag{
-			Name:  "disable-cert-check",
-			Usage: "disable certificate checking on this endpoint, useful for testing",
+			Name:        "disable-cert-check",
+			Usage:       "disable certificate checking on this endpoint, useful for testing",
+			Destination: &disableCertCheck,
 		},
 	}
 
-	app.Before = setupConnection
+	nApp.Before = setupConnection
 
-	app.Commands = []cli.Command{{
+	nApp.Commands = []cli.Command{{
 		Name:   "get-ip",
 		Usage:  "retrieves the IP for this rTorrent instance",
 		Action: getIP,
-		Before: setupConnection,
 	}, {
 		Name:   "get-name",
 		Usage:  "retrieves the name for this rTorrent instance",
 		Action: getName,
-		Before: setupConnection,
 	}, {
 		Name:   "get-totals",
 		Usage:  "retrieves the up/down totals for this rTorrent instance",
 		Action: getTotals,
-		Before: setupConnection,
 	}, {
 		Name:   "get-torrents",
 		Usage:  "retrieves the torrents from this rTorrent instance",
 		Action: getTorrents,
-		Before: setupConnection,
 		Flags: []cli.Flag{
 			cli.StringFlag{
-				Name:  "view",
-				Usage: "view to use, known values: main, started, stopped, hashing, seeding",
-				Value: string(rtorrent.ViewMain),
+				Name:        "view",
+				Usage:       "view to use, known values: main, started, stopped, hashing, seeding",
+				Value:       string(rtorrent.ViewMain),
+				Destination: &view,
 			},
 		},
 	}, {
 		Name:   "get-files",
 		Usage:  "retrieves the files for a specific torrent",
 		Action: getFiles,
-		Before: setupConnection,
 		Flags: []cli.Flag{
 			cli.StringFlag{
-				Name:  "hash",
-				Usage: "hash of the torrent",
-				Value: "unknown",
+				Name:        "hash",
+				Usage:       "hash of the torrent",
+				Value:       "unknown",
+				Destination: &hash,
 			},
 		},
 	},
 	}
 
-	return app
+	return nApp
 }
 
 func main() {
-	app.Run(os.Args)
+	if err := app.Run(os.Args); err != nil {
+		log.WithError(err).Error("failure")
+	}
 }
 
 func setupConnection(c *cli.Context) error {
-	rTorrentConn := rtorrent.New(c.GlobalString("endpoint"), c.GlobalBool("disable-cert-check"))
-	conn = rTorrentConn
+	if endpoint == "" {
+		return errors.New("endpoint must be specified")
+	}
+	conn = rtorrent.New(endpoint, disableCertCheck)
 	return nil
 }
 
-func getIP(c *cli.Context) {
+func getIP(c *cli.Context) error {
 	ip, err := conn.IP()
 	if err != nil {
-		log.WithError(err).Error("error getting rTorrent IP")
-	} else {
-		fmt.Println(ip)
+		return errors.Wrap(err, "failed to get rTorrent IP")
 	}
+	fmt.Println(ip)
+	return nil
 }
 
-func getName(c *cli.Context) {
+func getName(c *cli.Context) error {
 	name, err := conn.Name()
 	if err != nil {
-		log.WithError(err).Error("error getting rTorrent name")
-	} else {
-		fmt.Println(name)
+		return errors.Wrap(err, "failed to get rTorrent name")
 	}
+	fmt.Println(name)
+	return nil
 }
 
-func getTotals(c *cli.Context) {
+func getTotals(c *cli.Context) error {
 	// Get Down Total
 	downTotal, err := conn.DownTotal()
 	if err != nil {
-		log.WithError(err).Error("error getting rTorrent down total")
-	} else {
-		fmt.Printf("%d\n", downTotal)
+		return errors.Wrap(err, "failed to get rTorrent down total")
 	}
+	fmt.Printf("%d\n", downTotal)
 
 	// Get Up Total
 	upTotal, err := conn.UpTotal()
 	if err != nil {
-		log.WithError(err).Error("error getting rTorrent up total")
-	} else {
-		fmt.Printf("%d\n", upTotal)
+		return errors.Wrap(err, "failed to get rTorrent up total")
 	}
+	fmt.Printf("%d\n", upTotal)
+	return nil
 }
 
-func getTorrents(c *cli.Context) {
-	torrents, err := conn.GetTorrents(rtorrent.View(c.String("view")))
+func getTorrents(c *cli.Context) error {
+	torrents, err := conn.GetTorrents(rtorrent.View(view))
 	if err != nil {
-		log.WithError(err).Error("error getting torrents")
-	} else {
-		for _, torrent := range torrents {
-			fmt.Println(torrent.Pretty())
-		}
+		return errors.Wrap(err, "failed to get torrents")
 	}
+	for _, torrent := range torrents {
+		fmt.Println(torrent.Pretty())
+	}
+	return nil
 }
 
-func getFiles(c *cli.Context) {
-	files, err := conn.GetFiles(rtorrent.Torrent{Hash: c.String("hash")})
+func getFiles(c *cli.Context) error {
+	files, err := conn.GetFiles(rtorrent.Torrent{Hash: hash})
 	if err != nil {
-		log.WithError(err).Error("error getting files")
-	} else {
-		log.WithFields(log.Fields{
-			"torrent_hash": c.String("hash"),
-			"num":          len(files),
-		}).Info("found files", len(files))
-		for _, file := range files {
-			fmt.Println(file.Pretty())
-		}
+		return errors.Wrap(err, "failed to get files")
 	}
+	log.WithFields(log.Fields{
+		"torrent_hash": hash,
+		"num":          len(files),
+	}).Info("found files")
+	for _, file := range files {
+		fmt.Println(file.Pretty())
+	}
+	return nil
 }
