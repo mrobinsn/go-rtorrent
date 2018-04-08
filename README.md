@@ -33,6 +33,11 @@ name, _ := conn.Name()
 fmt.Printf("My rTorrent's name: %v", name)
 ```
 
+You can connect to a server using Basic Authentication by including the credentials in the endpoint URL:
+```
+conn, _ := rtorrent.New("https://user:pass@my-rtorrent.com/RPC2", false)
+```
+
 ## Command Line Utility
 A basic command line utility is included
 
