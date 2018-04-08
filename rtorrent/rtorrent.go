@@ -2,6 +2,7 @@ package rtorrent
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/mrobinsn/go-rtorrent/xmlrpc"
 	"github.com/pkg/errors"
@@ -9,6 +10,7 @@ import (
 
 // RTorrent is used to communicate with a remote rTorrent instance
 type RTorrent struct {
+	addr         string
 	xmlrpcClient *xmlrpc.Client
 }
 
@@ -59,8 +61,15 @@ func (f *File) Pretty() string {
 // Pass in a true value for `insecure` to turn off certificate verification
 func New(addr string, insecure bool) *RTorrent {
 	return &RTorrent{
+		addr:         addr,
 		xmlrpcClient: xmlrpc.NewClient(addr, insecure),
 	}
+}
+
+// WithHTTPClient allows you to a provide a custom http.Client.
+func (r *RTorrent) WithHTTPClient(client *http.Client) *RTorrent {
+	r.xmlrpcClient = xmlrpc.NewClientWithHTTPClient(r.addr, client)
+	return r
 }
 
 // Add adds a new torrent by URL

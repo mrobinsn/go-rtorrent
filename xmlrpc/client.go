@@ -32,6 +32,15 @@ func NewClient(addr string, insecure bool) *Client {
 	}
 }
 
+// NewClientWithHTTPClient returns a new instance of Client.
+// This allows you to use a custom http.Client setup for your needs.
+func NewClientWithHTTPClient(addr string, client *http.Client) *Client {
+	return &Client{
+		addr:       addr,
+		httpClient: client,
+	}
+}
+
 // Call calls the method with "name" with the given args
 // Returns the result, and an error for communication errors
 func (c *Client) Call(name string, args ...interface{}) (interface{}, error) {
