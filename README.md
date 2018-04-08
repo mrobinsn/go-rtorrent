@@ -17,6 +17,7 @@
 - Get files for torrents
 - Set the label on a torrent
 - Add a torrent by URL or by metadata
+- Delete a torrent (including files)
 
 ## Installation
 To install the package, run `go get github.com/mrobinsn/go-rtorrent`
@@ -70,3 +71,6 @@ GLOBAL OPTIONS:
    --help, -h                show help
    --version, -v            print the version
 ```
+
+## Contributing
+Pull requests are welcome, please ensure you add relevant tests for any new/changed functionality.
