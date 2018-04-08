@@ -96,7 +96,13 @@ func (r *RTorrent) IP() (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "get_ip XMLRPC call failed")
 	}
-	return result.(string), nil
+	if ips, ok := result.([]interface{}); ok {
+		result = ips[0]
+	}
+	if ip, ok := result.(string); ok {
+		return ip, nil
+	}
+	return "", errors.Errorf("result isn't string: %v", result)
 }
 
 // Name returns the name reported by this RTorrent instance
@@ -105,7 +111,13 @@ func (r *RTorrent) Name() (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "get_name XMLRPC call failed")
 	}
-	return result.(string), nil
+	if names, ok := result.([]interface{}); ok {
+		result = names[0]
+	}
+	if name, ok := result.(string); ok {
+		return name, nil
+	}
+	return "", errors.Errorf("result isn't string: %v", result)
 }
 
 // DownTotal returns the total downloaded metric reported by this RTorrent instance (bytes)
@@ -114,7 +126,13 @@ func (r *RTorrent) DownTotal() (int, error) {
 	if err != nil {
 		return 0, errors.Wrap(err, "get_down_total XMLRPC call failed")
 	}
-	return result.(int), nil
+	if totals, ok := result.([]interface{}); ok {
+		result = totals[0]
+	}
+	if total, ok := result.(int); ok {
+		return total, nil
+	}
+	return 0, errors.Errorf("result isn't int: %v", result)
 }
 
 // UpTotal returns the total uploaded metric reported by this RTorrent instance (bytes)
@@ -123,7 +141,13 @@ func (r *RTorrent) UpTotal() (int, error) {
 	if err != nil {
 		return 0, errors.Wrap(err, "get_up_total XMLRPC call failed")
 	}
-	return result.(int), nil
+	if totals, ok := result.([]interface{}); ok {
+		result = totals[0]
+	}
+	if total, ok := result.(int); ok {
+		return total, nil
+	}
+	return 0, errors.Errorf("result isn't int: %v", result)
 }
 
 // GetTorrents returns all of the torrents reported by this RTorrent instance
@@ -149,6 +173,15 @@ func (r *RTorrent) GetTorrents(view View) ([]Torrent, error) {
 		}
 	}
 	return torrents, nil
+}
+
+// Delete removes the torent
+func (r *RTorrent) Delete(t Torrent) error {
+	_, err := r.xmlrpcClient.Call("d.erase", t.Hash)
+	if err != nil {
+		return errors.Wrap(err, "d.erase XMLRPC call failed")
+	}
+	return nil
 }
 
 // GetFiles returns all of the files for a given `Torrent`
