@@ -3,8 +3,9 @@ package xmlrpc
 import (
 	"bytes"
 	"crypto/tls"
-	"fmt"
 	"net/http"
+
+	"github.com/pkg/errors"
 )
 
 // Client implements a basic XMLRPC client
@@ -35,19 +36,18 @@ func NewClient(addr string, insecure bool) *Client {
 // Returns the result, and an error for communication errors
 func (c *Client) Call(name string, args ...interface{}) (interface{}, error) {
 	req := bytes.NewBuffer(nil)
-	e := Marshal(req, name, args...)
-	if e != nil {
-		return nil, e
+	if err := Marshal(req, name, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to marshal request")
 	}
-	r, e := c.httpClient.Post(c.addr, "text/xml", req)
-	if e != nil {
-		return nil, e
+	resp, err := c.httpClient.Post(c.addr, "text/xml", req)
+	if err != nil {
+		return nil, errors.Wrap(err, "POST failed")
 	}
-	defer r.Body.Close()
+	defer resp.Body.Close()
 
-	_, v, f, e := Unmarshal(r.Body)
-	if f != nil {
-		e = fmt.Errorf("Error: %v: %v", e, f)
+	_, val, fault, err := Unmarshal(resp.Body)
+	if fault != nil {
+		err = errors.Errorf("Error: %v: %v", err, fault)
 	}
-	return v, e
+	return val, err
 }

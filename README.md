@@ -1,8 +1,15 @@
 # go-rtorrent
+[![GoDoc](https://godoc.org/github.com/mrobinsn/go-rtorrent/rtorrent?status.svg)](https://godoc.org/github.com/mrobinsn/go-rtorrent/rtorrent)
+[![Go Report Card](https://goreportcard.com/badge/github.com/mrobinsn/go-rtorrent)](https://goreportcard.com/report/github.com/mrobinsn/go-rtorrent)
+[![Build Status](https://travis-ci.org/mrobinsn/go-rtorrent.svg?branch=master)](https://travis-ci.org/mrobinsn/go-rtorrent)
+[![Coverage Status](https://coveralls.io/repos/github/mrobinsn/go-rtorrent/badge.svg?branch=master)](https://coveralls.io/github/mrobinsn/go-rtorrent?branch=master)
+[![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
+
+
 > rTorrent XMLRPC Bindings for Go (golang)
 
 ## Documentation
-[https://godoc.org/github.com/mrobinsn/go-rtorrent/rtorrent](https://godoc.org/github.com/mrobinsn/go-rtorrent/rtorrent)
+[GoDoc](https://godoc.org/github.com/mrobinsn/go-rtorrent/rtorrent)
 
 ## Features
 - Get IP, Name, Up/Down totals
@@ -24,6 +31,11 @@ To install the command line utility, run `go install "github.com/mrobinsn/go-rto
 conn, _ := rtorrent.New("http://my-rtorrent.com/RPC2", false)
 name, _ := conn.Name()
 fmt.Printf("My rTorrent's name: %v", name)
+```
+
+You can connect to a server using Basic Authentication by including the credentials in the endpoint URL:
+```
+conn, _ := rtorrent.New("https://user:pass@my-rtorrent.com/RPC2", false)
 ```
 
 ## Command Line Utility
