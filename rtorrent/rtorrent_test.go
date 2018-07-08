@@ -49,7 +49,7 @@ func TestRTorrent(t *testing.T) {
 
 	t.Run("add", func(t *testing.T) {
 		t.Run("by url", func(t *testing.T) {
-			err := client.Add("https://archive.org/download/bergeysmanualofd1957amer/bergeysmanualofd1957amer_archive.torrent")
+			err := client.Add("http://releases.ubuntu.com/18.04/ubuntu-18.04-live-server-amd64.iso.torrent")
 			require.NoError(t, err)
 
 			t.Run("get torrent", func(t *testing.T) {
@@ -71,18 +71,18 @@ func TestRTorrent(t *testing.T) {
 				}
 				require.NotEmpty(t, torrents)
 				require.Len(t, torrents, 1)
-				require.Equal(t, "A3302641AF31E17B4DCCDDDC2B41E208E85D03A2", torrents[0].Hash)
-				require.Equal(t, "bergeysmanualofd1957amer", torrents[0].Name)
+				require.Equal(t, "DDEE5CB75C12F3165EF79A12A5CD6158BEF029AD", torrents[0].Hash)
+				require.Equal(t, "ubuntu-18.04-live-server-amd64.iso", torrents[0].Name)
 				require.Equal(t, "", torrents[0].Label)
-				require.Equal(t, 888773112, torrents[0].Size)
-				require.Equal(t, "/downloads/incoming/bergeysmanualofd1957amer", torrents[0].Path)
+				require.Equal(t, 845152256, torrents[0].Size)
+				require.Equal(t, "/downloads/incoming/ubuntu-18.04-live-server-amd64.iso", torrents[0].Path)
 				require.False(t, torrents[0].Completed)
 
 				t.Run("get files", func(t *testing.T) {
 					files, err := client.GetFiles(torrents[0])
 					require.NoError(t, err)
 					require.NotEmpty(t, files)
-					require.Len(t, files, 19)
+					require.Len(t, files, 1)
 					for _, f := range files {
 						require.NotEmpty(t, f.Path)
 						require.NotZero(t, f.Size)
@@ -143,7 +143,7 @@ func TestRTorrent(t *testing.T) {
 		})
 
 		t.Run("with data", func(t *testing.T) {
-			b, err := ioutil.ReadFile("testdata/bergeysmanualofd1957amer_archive.torrent")
+			b, err := ioutil.ReadFile("testdata/ubuntu-18.04-live-server-amd64.iso.torrent")
 			require.NoError(t, err)
 			require.NotEmpty(t, b)
 
@@ -169,18 +169,18 @@ func TestRTorrent(t *testing.T) {
 				}
 				require.NotEmpty(t, torrents)
 				require.Len(t, torrents, 1)
-				require.Equal(t, "A3302641AF31E17B4DCCDDDC2B41E208E85D03A2", torrents[0].Hash)
-				require.Equal(t, "bergeysmanualofd1957amer", torrents[0].Name)
+				require.Equal(t, "DDEE5CB75C12F3165EF79A12A5CD6158BEF029AD", torrents[0].Hash)
+				require.Equal(t, "ubuntu-18.04-live-server-amd64.iso", torrents[0].Name)
 				require.Equal(t, "", torrents[0].Label)
-				require.Equal(t, 888773112, torrents[0].Size)
-				require.Equal(t, "/downloads/incoming/bergeysmanualofd1957amer", torrents[0].Path)
+				require.Equal(t, 845152256, torrents[0].Size)
+				require.Equal(t, "/downloads/incoming/ubuntu-18.04-live-server-amd64.iso", torrents[0].Path)
 				require.False(t, torrents[0].Completed)
 
 				t.Run("get files", func(t *testing.T) {
 					files, err := client.GetFiles(torrents[0])
 					require.NoError(t, err)
 					require.NotEmpty(t, files)
-					require.Len(t, files, 19)
+					require.Len(t, files, 1)
 					for _, f := range files {
 						require.NotEmpty(t, f.Path)
 						require.NotZero(t, f.Size)
