@@ -49,7 +49,7 @@ func TestRTorrent(t *testing.T) {
 
 	t.Run("add", func(t *testing.T) {
 		t.Run("by url", func(t *testing.T) {
-			err := client.Add("http://releases.ubuntu.com/18.04/ubuntu-18.04-live-server-amd64.iso.torrent")
+			err := client.Add("http://releases.ubuntu.com/18.10/ubuntu-18.10-live-server-amd64.iso.torrent")
 			require.NoError(t, err)
 
 			t.Run("get torrent", func(t *testing.T) {
@@ -71,11 +71,11 @@ func TestRTorrent(t *testing.T) {
 				}
 				require.NotEmpty(t, torrents)
 				require.Len(t, torrents, 1)
-				require.Equal(t, "DDEE5CB75C12F3165EF79A12A5CD6158BEF029AD", torrents[0].Hash)
-				require.Equal(t, "ubuntu-18.04-live-server-amd64.iso", torrents[0].Name)
+				require.Equal(t, "8C4ADBF9EBE66F1D804FB6A4FB9B74966C3AB609", torrents[0].Hash)
+				require.Equal(t, "ubuntu-18.10-live-server-amd64.iso", torrents[0].Name)
 				require.Equal(t, "", torrents[0].Label)
-				require.Equal(t, 845152256, torrents[0].Size)
-				require.Equal(t, "/downloads/incoming/ubuntu-18.04-live-server-amd64.iso", torrents[0].Path)
+				require.Equal(t, 923795456, torrents[0].Size)
+				require.Equal(t, "/downloads/incoming/ubuntu-18.10-live-server-amd64.iso", torrents[0].Path)
 				require.False(t, torrents[0].Completed)
 
 				t.Run("get files", func(t *testing.T) {
@@ -143,7 +143,7 @@ func TestRTorrent(t *testing.T) {
 		})
 
 		t.Run("with data", func(t *testing.T) {
-			b, err := ioutil.ReadFile("testdata/ubuntu-18.04-live-server-amd64.iso.torrent")
+			b, err := ioutil.ReadFile("testdata/ubuntu-18.10-live-server-amd64.iso.torrent")
 			require.NoError(t, err)
 			require.NotEmpty(t, b)
 
@@ -169,11 +169,11 @@ func TestRTorrent(t *testing.T) {
 				}
 				require.NotEmpty(t, torrents)
 				require.Len(t, torrents, 1)
-				require.Equal(t, "DDEE5CB75C12F3165EF79A12A5CD6158BEF029AD", torrents[0].Hash)
-				require.Equal(t, "ubuntu-18.04-live-server-amd64.iso", torrents[0].Name)
+				require.Equal(t, "8C4ADBF9EBE66F1D804FB6A4FB9B74966C3AB609", torrents[0].Hash)
+				require.Equal(t, "ubuntu-18.10-live-server-amd64.iso", torrents[0].Name)
 				require.Equal(t, "", torrents[0].Label)
-				require.Equal(t, 845152256, torrents[0].Size)
-				require.Equal(t, "/downloads/incoming/ubuntu-18.04-live-server-amd64.iso", torrents[0].Path)
+				require.Equal(t, 923795456, torrents[0].Size)
+				require.Equal(t, "/downloads/incoming/ubuntu-18.10-live-server-amd64.iso", torrents[0].Path)
 				require.False(t, torrents[0].Completed)
 
 				t.Run("get files", func(t *testing.T) {
