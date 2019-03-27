@@ -52,10 +52,10 @@ USAGE:
    go-rtorrent [global options] command [command options] [arguments...]
 
 VERSION:
-   0.4.0
+   1.0.0
 
 AUTHOR(S):
-   Michael Robinson <mrobinson@outlook.com>
+   Michael Robinson <m@michaelrobinson.io>
 
 COMMANDS:
    get-ip    retrieves the IP for this rTorrent instance

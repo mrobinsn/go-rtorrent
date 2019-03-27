@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/apex/log"
 	"github.com/mrobinsn/go-rtorrent/rtorrent"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
@@ -12,7 +11,7 @@ import (
 
 var (
 	name    = "rTorrent XMLRPC CLI"
-	version = "0.5.0"
+	version = "1.0.0"
 	app     = initApp()
 	conn    *rtorrent.RTorrent
 
@@ -92,7 +91,7 @@ func initApp() *cli.App {
 
 func main() {
 	if err := app.Run(os.Args); err != nil {
-		log.WithError(err).Error("failure")
+		fmt.Println(err)
 	}
 }
 
@@ -155,10 +154,6 @@ func getFiles(c *cli.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to get files")
 	}
-	log.WithFields(log.Fields{
-		"torrent_hash": hash,
-		"num":          len(files),
-	}).Info("found files")
 	for _, file := range files {
 		fmt.Println(file.Pretty())
 	}
