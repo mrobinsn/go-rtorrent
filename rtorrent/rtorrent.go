@@ -74,27 +74,27 @@ func (r *RTorrent) WithHTTPClient(client *http.Client) *RTorrent {
 
 // Add adds a new torrent by URL
 func (r *RTorrent) Add(url string) error {
-	_, err := r.xmlrpcClient.Call("load_start", url)
+	_, err := r.xmlrpcClient.Call("load.start", "", url)
 	if err != nil {
-		return errors.Wrap(err, "load_start XMLRPC call failed")
+		return errors.Wrap(err, "load.start XMLRPC call failed")
 	}
 	return nil
 }
 
 // AddTorrent adds a new torrent by the torrent files data
 func (r *RTorrent) AddTorrent(data []byte) error {
-	_, err := r.xmlrpcClient.Call("load_raw_start", data)
+	_, err := r.xmlrpcClient.Call("load.raw_start", "", data)
 	if err != nil {
-		return errors.Wrap(err, "load_raw_start XMLRPC call failed")
+		return errors.Wrap(err, "load.raw_start XMLRPC call failed")
 	}
 	return nil
 }
 
 // IP returns the IP reported by this RTorrent instance
 func (r *RTorrent) IP() (string, error) {
-	result, err := r.xmlrpcClient.Call("get_ip")
+	result, err := r.xmlrpcClient.Call("network.bind_address")
 	if err != nil {
-		return "", errors.Wrap(err, "get_ip XMLRPC call failed")
+		return "", errors.Wrap(err, "network.bind_address XMLRPC call failed")
 	}
 	if ips, ok := result.([]interface{}); ok {
 		result = ips[0]
@@ -107,9 +107,9 @@ func (r *RTorrent) IP() (string, error) {
 
 // Name returns the name reported by this RTorrent instance
 func (r *RTorrent) Name() (string, error) {
-	result, err := r.xmlrpcClient.Call("get_name")
+	result, err := r.xmlrpcClient.Call("system.hostname")
 	if err != nil {
-		return "", errors.Wrap(err, "get_name XMLRPC call failed")
+		return "", errors.Wrap(err, "system.hostname XMLRPC call failed")
 	}
 	if names, ok := result.([]interface{}); ok {
 		result = names[0]
@@ -122,9 +122,9 @@ func (r *RTorrent) Name() (string, error) {
 
 // DownTotal returns the total downloaded metric reported by this RTorrent instance (bytes)
 func (r *RTorrent) DownTotal() (int, error) {
-	result, err := r.xmlrpcClient.Call("get_down_total")
+	result, err := r.xmlrpcClient.Call("throttle.global_down.total")
 	if err != nil {
-		return 0, errors.Wrap(err, "get_down_total XMLRPC call failed")
+		return 0, errors.Wrap(err, "throttle.global_down.total XMLRPC call failed")
 	}
 	if totals, ok := result.([]interface{}); ok {
 		result = totals[0]
@@ -137,9 +137,9 @@ func (r *RTorrent) DownTotal() (int, error) {
 
 // UpTotal returns the total uploaded metric reported by this RTorrent instance (bytes)
 func (r *RTorrent) UpTotal() (int, error) {
-	result, err := r.xmlrpcClient.Call("get_up_total")
+	result, err := r.xmlrpcClient.Call("throttle.global_up.total")
 	if err != nil {
-		return 0, errors.Wrap(err, "get_up_total XMLRPC call failed")
+		return 0, errors.Wrap(err, "throttle.global_up.total XMLRPC call failed")
 	}
 	if totals, ok := result.([]interface{}); ok {
 		result = totals[0]
@@ -152,11 +152,11 @@ func (r *RTorrent) UpTotal() (int, error) {
 
 // GetTorrents returns all of the torrents reported by this RTorrent instance
 func (r *RTorrent) GetTorrents(view View) ([]Torrent, error) {
-	args := []interface{}{string(view), "d.get_name=", "d.get_size_bytes=", "d.get_hash=", "d.get_custom1=", "d.get_base_path=", "d.is_active=", "d.get_complete=", "d.get_ratio="}
-	results, err := r.xmlrpcClient.Call("d.multicall", args...)
+	args := []interface{}{"", string(view), "d.name=", "d.size_bytes=", "d.hash=", "d.custom1=", "d.base_path=", "d.is_active=", "d.complete=", "d.ratio="}
+	results, err := r.xmlrpcClient.Call("d.multicall2", args...)
 	var torrents []Torrent
 	if err != nil {
-		return torrents, errors.Wrap(err, "d.multicall XMLRPC call failed")
+		return torrents, errors.Wrap(err, "d.multicall2 XMLRPC call failed")
 	}
 	for _, outerResult := range results.([]interface{}) {
 		for _, innerResult := range outerResult.([]interface{}) {
@@ -186,7 +186,7 @@ func (r *RTorrent) Delete(t Torrent) error {
 
 // GetFiles returns all of the files for a given `Torrent`
 func (r *RTorrent) GetFiles(t Torrent) ([]File, error) {
-	args := []interface{}{t.Hash, 0, "f.get_path=", "f.get_size_bytes="}
+	args := []interface{}{t.Hash, 0, "f.path=", "f.size_bytes="}
 	results, err := r.xmlrpcClient.Call("f.multicall", args...)
 	var files []File
 	if err != nil {
@@ -208,8 +208,8 @@ func (r *RTorrent) GetFiles(t Torrent) ([]File, error) {
 func (r *RTorrent) SetLabel(t Torrent, newLabel string) error {
 	t.Label = newLabel
 	args := []interface{}{t.Hash, newLabel}
-	if _, err := r.xmlrpcClient.Call("d.set_custom1", args...); err != nil {
-		return errors.Wrap(err, "d.set_custom1 XMLRPC call failed")
+	if _, err := r.xmlrpcClient.Call("d.custom1.set", args...); err != nil {
+		return errors.Wrap(err, "d.custom1.set XMLRPC call failed")
 	}
 	return nil
 }
