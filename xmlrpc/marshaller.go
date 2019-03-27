@@ -7,15 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
-	"os"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
 )
-
-var logger = log.New(os.Stderr, "xmlrpc", log.LstdFlags)
 
 /// ISO8601 is not very much restrictive, so many combinations exist
 const (
@@ -28,13 +24,6 @@ const (
 	// DummyXMLRpcTime is seen in the wild
 	DummyXMLRpcTime = "20060102T15:04:05-0700"
 )
-
-// SetLogger sets a new logger for this package, returns old logger
-func SetLogger(lgr *log.Logger) *log.Logger {
-	old := logger
-	logger = lgr
-	return old
-}
 
 // ErrUnsupported is the error of "Unsupported type"
 var ErrUnsupported = errors.New("Unsupported type")
@@ -118,12 +107,10 @@ func (st *state) parseValue() (nv interface{}, e error) {
 		return
 	}
 
-	//log.Printf("parseValue(%s)\n", se.Name.Local)
 	var vn valueNode
 	switch se.Name.Local {
 	case "value":
 		if nv, e = st.parseValue(); e == nil {
-			// log.Printf("searching for /value")
 			e = st.checkLast("value")
 		}
 		return
@@ -132,8 +119,6 @@ func (st *state) parseValue() (nv interface{}, e error) {
 		if e = st.p.DecodeElement(&vn, &se); e != nil {
 			return
 		}
-
-		//log.Printf("parseValue(%s)\n", vn)
 
 		switch se.Name.Local {
 		case "boolean":
@@ -153,7 +138,6 @@ func (st *state) parseValue() (nv interface{}, e error) {
 		case "dateTime.iso8601":
 			for _, format := range []string{FullXMLRpcTime, LocalXMLRpcTime, DenseXMLRpcTime, DummyXMLRpcTime} {
 				nv, e = time.Parse(format, vn.Body)
-				// log.Print("txt=", vn.Body, " t=", t, " fmt=", format, " e=", e)
 				if e == nil {
 					break
 				}
@@ -168,7 +152,6 @@ func (st *state) parseValue() (nv interface{}, e error) {
 		values := make(map[string]interface{}, 4)
 		nv = values
 		for {
-			// log.Printf("struct searching for member")
 			if se, e = st.getStart("member"); e != nil {
 				if ErrEq(e, errNotStartElement) {
 					e = st.checkLast("struct")
@@ -186,7 +169,6 @@ func (st *state) parseValue() (nv interface{}, e error) {
 				return
 			}
 			if e = st.checkLast("value"); e != nil {
-				log.Printf("didn't found last value element for struct member")
 				return
 			}
 			if e = st.checkLast("member"); e != nil {
@@ -198,13 +180,11 @@ func (st *state) parseValue() (nv interface{}, e error) {
 	case "array":
 		values := make([]interface{}, 0, 4)
 		var val interface{}
-		// log.Printf("array searching for data")
 		if _, e = st.getStart("data"); e != nil {
 			return
 		}
 		for {
 			if se, e = st.getStart("value"); e != nil {
-				// log.Printf("array parsing ends with %s", e)
 				if ErrEq(e, errNotStartElement) {
 					e = nil //st.checkLast("data")
 					break
@@ -216,7 +196,6 @@ func (st *state) parseValue() (nv interface{}, e error) {
 			}
 			values = append(values, val)
 			if e = st.checkLast("value"); e != nil {
-				log.Printf("didn't find value end for array")
 				return
 			}
 		}
@@ -252,7 +231,6 @@ Reading:
 					break Reading
 				}
 			default:
-				// log.Printf("discarded %s %T", t, t)
 			}
 		}
 		if t, e = st.p.Token(); e != nil {
@@ -263,12 +241,10 @@ Reading:
 			return
 		}
 	}
-	// log.Printf("token %s %T", t, t)
 	switch typ {
 	case tokStart, tokText:
 		se, ok := t.(xml.StartElement)
 		if !ok {
-			// log.Printf("required startelement(%s), found %s %T", name, t, t)
 			st.last = &t
 			e = Errorf2(errNotStartElement, "required startelement(%s), found %s %T", name, t, t)
 			return
@@ -276,7 +252,6 @@ Reading:
 		switch typ {
 		case tokStart:
 			if name != "" && se.Name.Local != name {
-				// log.Printf("required <%s>, found <%s>", name, se.Name.Local)
 				e = Errorf2(errNameMismatch, "required <%s>, found <%s>", name, se.Name.Local)
 				return
 			}
@@ -290,18 +265,15 @@ Reading:
 	default:
 		ee, ok := t.(xml.EndElement)
 		if !ok {
-			log.Printf("required endelement(%s), found %s %T", name, t, t)
 			st.last = &t
 			e = Errorf2(errNotEndElement, "required endelement(%s), found %s %T", name, t, t)
 			return
 		}
 		if name != "" && ee.Name.Local != name {
-			// log.Printf("required </%s>, found </%s>", name, ee.Name.Local)
 			e = Errorf2(errNameMismatch, "required </%s>, found </%s>", name, ee.Name.Local)
 			return
 		}
 	}
-	// log.Printf("  .")
 	return
 }
 
@@ -323,7 +295,6 @@ func (st *state) getText(name string) (text string, e error) {
 
 func (st *state) checkLast(name string) (e error) {
 	_, _, e = st.token(tokStop, name)
-	// log.Printf("  l")
 	return
 }
 
@@ -406,7 +377,6 @@ func toXML(v interface{}, typ bool) (s string) {
 
 // WriteXML writes v, typed if typ is true, into w Writer
 func WriteXML(w io.Writer, v interface{}, typ bool) (err error) {
-	logger.SetPrefix("WriteXML")
 	var (
 		r  reflect.Value
 		ok bool
@@ -503,7 +473,6 @@ func WriteXML(w io.Writer, v interface{}, typ bool) (err error) {
 		_, err = io.WriteString(w, "</struct>")
 		return
 	case reflect.Ptr:
-		log.Printf("indirecting pointer v=%#v t=%v k=%s", v, t, k)
 		return WriteXML(w, reflect.Indirect(r), typ)
 	case reflect.String:
 		if typ {
@@ -513,7 +482,6 @@ func WriteXML(w io.Writer, v interface{}, typ bool) (err error) {
 		_, err = io.WriteString(w, xmlEscape(v.(string)))
 		return
 	case reflect.Struct:
-		log.Printf("Struct %+v", v)
 		if _, err = io.WriteString(w, "<struct>"); err != nil {
 			return
 		}
@@ -577,9 +545,8 @@ func taggedWriteString(w io.Writer, tag, inner string) (n int, err error) {
 func getStructFieldName(sf reflect.StructField) string {
 	if sf.Tag.Get("xml") == "" {
 		return sf.Name
-	} else {
-		return sf.Tag.Get("xml")
 	}
+	return sf.Tag.Get("xml")
 }
 
 // Marshal marshals the named thing (methodResponse if name == "", otherwise a methodCall)
@@ -591,7 +558,6 @@ func Marshal(w io.Writer, name string, args ...interface{}) (err error) {
 		}
 		if len(args) > 0 {
 			fp, ok := getFault(args[0])
-			// log.Printf("fault (%+v)? %s", args[0], ok)
 			if ok {
 				_, err = fp.WriteXML(w)
 				if err == nil {
@@ -634,14 +600,11 @@ func Marshal(w io.Writer, name string, args ...interface{}) (err error) {
 }
 
 func getFault(v interface{}) (*Fault, bool) {
-	// log.Printf("getFault(%+v %T)", v, v)
 	if f, ok := v.(Fault); ok {
-		// log.Printf("  yes")
 		return &f, true
 	}
 	if f, ok := v.(*Fault); ok {
 		if f != nil {
-			// log.Printf("  yes")
 			return f, true
 		}
 	} else {
@@ -649,7 +612,6 @@ func getFault(v interface{}) (*Fault, bool) {
 			return &Fault{Code: -1, Message: e.Error()}, true
 		}
 	}
-	// log.Printf("  no")
 	return nil, false
 }
 
@@ -669,7 +631,6 @@ func Unmarshal(r io.Reader) (name string, params []interface{}, fault *Fault, e 
 	}
 	var se xml.StartElement
 	if se, e = st.getStart("params"); e != nil {
-		log.Printf("not params, but %s (%s)", se.Name.Local, e)
 		if ErrEq(e, errNameMismatch) && se.Name.Local == "fault" {
 			var v interface{}
 			if v, e = st.parseValue(); e != nil {
