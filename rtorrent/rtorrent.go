@@ -25,6 +25,15 @@ type Torrent struct {
 	Ratio     float64
 }
 
+// Status represents the status of a torrent
+type Status struct {
+	Completed      bool
+	CompletedBytes int
+	DownRate       int
+	UpRate         int
+	Ratio          float64
+}
+
 // File represents a file in rTorrent
 type File struct {
 	Path string
@@ -175,7 +184,7 @@ func (r *RTorrent) GetTorrents(view View) ([]Torrent, error) {
 	return torrents, nil
 }
 
-// Delete removes the torent
+// Delete removes the torrent
 func (r *RTorrent) Delete(t Torrent) error {
 	_, err := r.xmlrpcClient.Call("d.erase", t.Hash)
 	if err != nil {
@@ -212,4 +221,40 @@ func (r *RTorrent) SetLabel(t Torrent, newLabel string) error {
 		return errors.Wrap(err, "d.custom1.set XMLRPC call failed")
 	}
 	return nil
+}
+
+// GetStatus returns the Status for a given Torrent
+func (r *RTorrent) GetStatus(t Torrent) (Status, error) {
+	var s Status
+	// Completed
+	results, err := r.xmlrpcClient.Call("d.complete", t.Hash)
+	if err != nil {
+		return s, errors.Wrap(err, "d.complete XMLRPC call failed")
+	}
+	s.Completed = results.([]interface{})[0].(int) > 0
+	// CompletedBytes
+	results, err = r.xmlrpcClient.Call("d.completed_bytes", t.Hash)
+	if err != nil {
+		return s, errors.Wrap(err, "d.completed_bytes XMLRPC call failed")
+	}
+	s.CompletedBytes = results.([]interface{})[0].(int)
+	// DownRate
+	results, err = r.xmlrpcClient.Call("d.down.rate", t.Hash)
+	if err != nil {
+		return s, errors.Wrap(err, "d.down.rate XMLRPC call failed")
+	}
+	s.DownRate = results.([]interface{})[0].(int)
+	// UpRate
+	results, err = r.xmlrpcClient.Call("d.up.rate", t.Hash)
+	if err != nil {
+		return s, errors.Wrap(err, "d.up.rate XMLRPC call failed")
+	}
+	s.UpRate = results.([]interface{})[0].(int)
+	// Ratio
+	results, err = r.xmlrpcClient.Call("d.ratio", t.Hash)
+	if err != nil {
+		return s, errors.Wrap(err, "d.ratio XMLRPC call failed")
+	}
+	s.Ratio = float64(results.([]interface{})[0].(int)) / float64(1000)
+	return s, nil
 }
