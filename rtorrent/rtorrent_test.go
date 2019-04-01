@@ -41,6 +41,18 @@ func TestRTorrent(t *testing.T) {
 		require.Zero(t, total, "expected no data to be transferred yet")
 	})
 
+	t.Run("down rate", func(t *testing.T) {
+		rate, err := client.DownRate()
+		require.NoError(t, err)
+		require.Zero(t, rate, "expected no download yet")
+	})
+
+	t.Run("up rate", func(t *testing.T) {
+		rate, err := client.UpRate()
+		require.NoError(t, err)
+		require.Zero(t, rate, "expected no upload yet")
+	})
+
 	t.Run("get no torrents", func(t *testing.T) {
 		torrents, err := client.GetTorrents(ViewMain)
 		require.NoError(t, err)

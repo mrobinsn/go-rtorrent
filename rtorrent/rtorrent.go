@@ -144,11 +144,41 @@ func (r *RTorrent) DownTotal() (int, error) {
 	return 0, errors.Errorf("result isn't int: %v", result)
 }
 
+// DownRate returns the current download rate reported by this RTorrent instance (bytes/s)
+func (r *RTorrent) DownRate() (int, error) {
+	result, err := r.xmlrpcClient.Call("throttle.global_down.rate")
+	if err != nil {
+		return 0, errors.Wrap(err, "throttle.global_down.rate XMLRPC call failed")
+	}
+	if totals, ok := result.([]interface{}); ok {
+		result = totals[0]
+	}
+	if total, ok := result.(int); ok {
+		return total, nil
+	}
+	return 0, errors.Errorf("result isn't int: %v", result)
+}
+
 // UpTotal returns the total uploaded metric reported by this RTorrent instance (bytes)
 func (r *RTorrent) UpTotal() (int, error) {
 	result, err := r.xmlrpcClient.Call("throttle.global_up.total")
 	if err != nil {
 		return 0, errors.Wrap(err, "throttle.global_up.total XMLRPC call failed")
+	}
+	if totals, ok := result.([]interface{}); ok {
+		result = totals[0]
+	}
+	if total, ok := result.(int); ok {
+		return total, nil
+	}
+	return 0, errors.Errorf("result isn't int: %v", result)
+}
+
+// UpRate returns the current upload rate reported by this RTorrent instance (bytes/s)
+func (r *RTorrent) UpRate() (int, error) {
+	result, err := r.xmlrpcClient.Call("throttle.global_up.rate")
+	if err != nil {
+		return 0, errors.Wrap(err, "throttle.global_up.rate XMLRPC call failed")
 	}
 	if totals, ok := result.([]interface{}); ok {
 		result = totals[0]
