@@ -41,6 +41,18 @@ func TestRTorrent(t *testing.T) {
 		require.Zero(t, total, "expected no data to be transferred yet")
 	})
 
+	t.Run("down rate", func(t *testing.T) {
+		rate, err := client.DownRate()
+		require.NoError(t, err)
+		require.Zero(t, rate, "expected no download yet")
+	})
+
+	t.Run("up rate", func(t *testing.T) {
+		rate, err := client.UpRate()
+		require.NoError(t, err)
+		require.Zero(t, rate, "expected no upload yet")
+	})
+
 	t.Run("get no torrents", func(t *testing.T) {
 		torrents, err := client.GetTorrents(ViewMain)
 		require.NoError(t, err)
@@ -109,6 +121,32 @@ func TestRTorrent(t *testing.T) {
 						tries++
 					}
 					require.Equal(t, "TestLabel", torrents[0].Label)
+				})
+
+				t.Run("get status", func(t *testing.T) {
+					var status Status
+					var err error
+					// It may take some time for the download to start
+					tries := 0
+					for {
+						<-time.After(time.Second)
+						status, err = client.GetStatus(torrents[0])
+						require.NoError(t, err)
+						t.Logf("Status = %+v", status)
+						if status.CompletedBytes > 0 {
+							break
+						}
+						if tries > 10 {
+							require.NoError(t, errors.Errorf("torrent did not start in time"))
+						}
+						tries++
+					}
+
+					require.False(t, status.Completed)
+					require.NotZero(t, status.CompletedBytes)
+					require.NotZero(t, status.DownRate)
+					// require.NotZero(t, status.UpRate)
+					//require.NotZero(t, status.Ratio)
 				})
 
 				t.Run("delete torrent", func(t *testing.T) {
