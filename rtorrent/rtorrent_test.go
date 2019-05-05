@@ -145,6 +145,7 @@ func TestRTorrent(t *testing.T) {
 					require.False(t, status.Completed)
 					require.NotZero(t, status.CompletedBytes)
 					require.NotZero(t, status.DownRate)
+					require.NotZero(t, status.Size)
 					// require.NotZero(t, status.UpRate)
 					//require.NotZero(t, status.Ratio)
 				})
