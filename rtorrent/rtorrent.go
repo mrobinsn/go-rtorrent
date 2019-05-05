@@ -32,6 +32,7 @@ type Status struct {
 	DownRate       int
 	UpRate         int
 	Ratio          float64
+	Size           int
 }
 
 // File represents a file in rTorrent
@@ -286,5 +287,11 @@ func (r *RTorrent) GetStatus(t Torrent) (Status, error) {
 		return s, errors.Wrap(err, "d.ratio XMLRPC call failed")
 	}
 	s.Ratio = float64(results.([]interface{})[0].(int)) / float64(1000)
+	// Size
+	results, err = r.xmlrpcClient.Call("d.size_bytes", t.Hash)
+	if err != nil {
+		return s, errors.Wrap(err, "d.size_bytes XMLRPC call failed")
+	}
+	s.Size = results.([]interface{})[0].(int)
 	return s, nil
 }
