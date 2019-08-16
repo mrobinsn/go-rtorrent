@@ -101,6 +101,15 @@ func TestRTorrent(t *testing.T) {
 					}
 				})
 
+				t.Run("single get", func(t *testing.T) {
+					torrent, err := client.GetTorrent(torrents[0].Hash)
+					require.NoError(t, err)
+					require.NotEmpty(t, torrent.Hash)
+					require.NotEmpty(t, torrent.Name)
+					require.NotEmpty(t, torrent.Path)
+					require.NotEmpty(t, torrent.Size)
+				})
+
 				t.Run("change label", func(t *testing.T) {
 					err := client.SetLabel(torrents[0], "TestLabel")
 					require.NoError(t, err)
