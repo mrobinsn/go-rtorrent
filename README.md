@@ -14,6 +14,7 @@
 ## Features
 - Get IP, Name, Up/Down totals
 - Get torrents within a view
+- Get torrent by hash
 - Get files for torrents
 - Set the label on a torrent
 - Add a torrent by URL or by metadata
