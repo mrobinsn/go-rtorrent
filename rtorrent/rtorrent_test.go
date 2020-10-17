@@ -186,6 +186,39 @@ func TestRTorrent(t *testing.T) {
 						require.Empty(t, torrents)
 					})
 				})
+
+			})
+		})
+
+		t.Run("by url (stopped)", func(t *testing.T) {
+			err := client.AddStopped("http://releases.ubuntu.com/19.04/ubuntu-19.04-live-server-amd64.iso.torrent")
+			require.NoError(t, err)
+
+			t.Run("get torrent", func(t *testing.T) {
+				// It will take some time to appear, so retry a few times
+				tries := 0
+				var torrents []Torrent
+				var err error
+				for {
+					<-time.After(time.Second)
+					torrents, err = client.GetTorrents(ViewStopped)
+					require.NoError(t, err)
+					if len(torrents) > 0 {
+						break
+					}
+					if tries > 10 {
+						require.NoError(t, errors.Errorf("torrent did not show up in time"))
+					}
+					tries++
+				}
+				require.NotEmpty(t, torrents)
+				require.Len(t, torrents, 1)
+				require.Equal(t, "B7B0FBAB74A85D4AC170662C645982A862826455", torrents[0].Hash)
+				require.Equal(t, "ubuntu-19.04-live-server-amd64.iso", torrents[0].Name)
+				require.Equal(t, "", torrents[0].Label)
+				require.Equal(t, 784334848, torrents[0].Size)
+				require.Equal(t, "/downloads/incoming/ubuntu-19.04-live-server-amd64.iso", torrents[0].Path)
+				require.False(t, torrents[0].Completed)
 			})
 		})
 
