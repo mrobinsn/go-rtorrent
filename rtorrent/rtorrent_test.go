@@ -17,10 +17,9 @@ func TestRTorrent(t *testing.T) {
 	client := New("http://localhost/RPC2", false)
 
 	t.Run("get ip", func(t *testing.T) {
-		ip, err := client.IP()
+		_, err := client.IP()
 		require.NoError(t, err)
-		require.NotEmpty(t, ip)
-		require.Equal(t, "0.0.0.0", ip)
+		// Don't assert anything about the response, differs based upon the environment
 	})
 
 	t.Run("get name", func(t *testing.T) {
