@@ -217,7 +217,8 @@ func TestRTorrent(t *testing.T) {
 				require.Equal(t, "ubuntu-19.04-live-server-amd64.iso", torrents[0].Name)
 				require.Equal(t, "", torrents[0].Label)
 				require.Equal(t, 784334848, torrents[0].Size)
-				require.Equal(t, "/downloads/incoming/ubuntu-19.04-live-server-amd64.iso", torrents[0].Path)
+				//no path yet since the torrent is stopped
+				require.Equal(t, "", torrents[0].Path)
 				require.False(t, torrents[0].Completed)
 			})
 		})
@@ -253,19 +254,9 @@ func TestRTorrent(t *testing.T) {
 				require.Equal(t, "ubuntu-20.04.1-live-server-amd64.iso", torrents[0].Name)
 				require.Equal(t, "", torrents[0].Label)
 				require.Equal(t, 958398464, torrents[0].Size)
-				require.Equal(t, "/downloads/incoming/ubuntu-20.04.1-live-server-amd64.iso", torrents[0].Path)
+				//no path yet since the torrent is stopped
+				require.Equal(t, "", torrents[0].Path)
 				require.False(t, torrents[0].Completed)
-
-				t.Run("get files", func(t *testing.T) {
-					files, err := client.GetFiles(torrents[0])
-					require.NoError(t, err)
-					require.NotEmpty(t, files)
-					require.Len(t, files, 1)
-					for _, f := range files {
-						require.NotEmpty(t, f.Path)
-						require.NotZero(t, f.Size)
-					}
-				})
 
 				t.Run("delete torrent", func(t *testing.T) {
 					err := client.Delete(torrents[0])
