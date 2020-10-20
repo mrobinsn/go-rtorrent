@@ -222,10 +222,8 @@ func TestRTorrent(t *testing.T) {
 				require.False(t, torrents[0].Completed)
 
 				t.Run("get status", func(t *testing.T) {
-					var status Status
-					var err error
 					<-time.After(time.Second)
-					status, err = client.GetStatus(torrents[0])
+					status, err := client.GetStatus(torrents[0])
 					require.NoError(t, err)
 					t.Logf("Status = %+v", status)
 
@@ -275,9 +273,83 @@ func TestRTorrent(t *testing.T) {
 			require.NoError(t, err)
 
 			t.Run("get torrent", func(t *testing.T) {
+				// It will take some time to appear, so retry a few times
+				tries := 0
 				var torrents []Torrent
 				var err error
+				for {
+					<-time.After(time.Second)
+					torrents, err = client.GetTorrents(ViewMain)
+					require.NoError(t, err)
+					if len(torrents) > 0 {
+						break
+					}
+					if tries > 10 {
+						require.NoError(t, errors.Errorf("torrent did not show up in time"))
+					}
+					tries++
+				}
+				require.NotEmpty(t, torrents)
+				require.Len(t, torrents, 1)
+				require.Equal(t, "36C67464C37A83478CEFF54932B5A9BDDEA636F3", torrents[0].Hash)
+				require.Equal(t, "ubuntu-20.04.1-live-server-amd64.iso", torrents[0].Name)
+				require.Equal(t, "", torrents[0].Label)
+				require.Equal(t, 958398464, torrents[0].Size)
+				require.Equal(t, "/downloads/incoming/ubuntu-20.04.1-live-server-amd64.iso", torrents[0].Path)
+				require.False(t, torrents[0].Completed)
 
+				t.Run("get files", func(t *testing.T) {
+					files, err := client.GetFiles(torrents[0])
+					require.NoError(t, err)
+					require.NotEmpty(t, files)
+					require.Len(t, files, 1)
+					for _, f := range files {
+						require.NotEmpty(t, f.Path)
+						require.NotZero(t, f.Size)
+					}
+				})
+
+				t.Run("delete torrent", func(t *testing.T) {
+					err := client.Delete(torrents[0])
+					require.NoError(t, err)
+
+					torrents, err := client.GetTorrents(ViewMain)
+					require.NoError(t, err)
+					require.Empty(t, torrents)
+
+					t.Run("get torrent", func(t *testing.T) {
+						// It will take some time to disappear, so retry a few times
+						tries := 0
+						var torrents []Torrent
+						var err error
+						for {
+							<-time.After(time.Second)
+							torrents, err = client.GetTorrents(ViewMain)
+							require.NoError(t, err)
+							if len(torrents) == 0 {
+								break
+							}
+							if tries > 10 {
+								require.NoError(t, errors.Errorf("torrent did not delete in time"))
+							}
+							tries++
+						}
+						require.Empty(t, torrents)
+					})
+				})
+			})
+		})
+
+		t.Run("with data (stopped)", func(t *testing.T) {
+			b, err := ioutil.ReadFile("testdata/ubuntu-20.04.1-live-server-amd64.iso.torrent")
+			require.NoError(t, err)
+			require.NotEmpty(t, b)
+
+			err = client.AddTorrentStopped(b)
+			require.NoError(t, err)
+
+			t.Run("get torrent", func(t *testing.T) {
+				// It will take some time to appear, so retry a few times
 				<-time.After(time.Second)
 				torrents, err = client.GetTorrents(ViewMain)
 				require.NoError(t, err)
@@ -288,9 +360,6 @@ func TestRTorrent(t *testing.T) {
 				require.Equal(t, "ubuntu-20.04.1-live-server-amd64.iso", torrents[0].Name)
 				require.Equal(t, "", torrents[0].Label)
 				require.Equal(t, 958398464, torrents[0].Size)
-				//no path yet since the torrent is stopped
-				require.Equal(t, "", torrents[0].Path)
-				require.False(t, torrents[0].Completed)
 
 				t.Run("delete torrent", func(t *testing.T) {
 					err := client.Delete(torrents[0])
