@@ -351,7 +351,7 @@ func TestRTorrent(t *testing.T) {
 			t.Run("get torrent", func(t *testing.T) {
 				// It will take some time to appear, so retry a few times
 				<-time.After(time.Second)
-				torrents, err = client.GetTorrents(ViewMain)
+				torrents, err := client.GetTorrents(ViewMain)
 				require.NoError(t, err)
 
 				require.NotEmpty(t, torrents)
