@@ -82,7 +82,16 @@ func (r *RTorrent) WithHTTPClient(client *http.Client) *RTorrent {
 	return r
 }
 
-// Add adds a new torrent by URL
+// AddStopped adds a new torrent by URL in a stopped state
+func (r *RTorrent) AddStopped(url string) error {
+	_, err := r.xmlrpcClient.Call("load.normal", "", url)
+	if err != nil {
+		return errors.Wrap(err, "load.normal XMLRPC call failed")
+	}
+	return nil
+}
+
+// Add adds a new torrent by URL and starts the torrent
 func (r *RTorrent) Add(url string) error {
 	_, err := r.xmlrpcClient.Call("load.start", "", url)
 	if err != nil {
@@ -91,7 +100,16 @@ func (r *RTorrent) Add(url string) error {
 	return nil
 }
 
-// AddTorrent adds a new torrent by the torrent files data
+// AddTorrentStopped adds a new torrent by the torrent files data but does not start the torrent
+func (r *RTorrent) AddTorrentStopped(data []byte) error {
+	_, err := r.xmlrpcClient.Call("load.raw", "", data)
+	if err != nil {
+		return errors.Wrap(err, "load.raw XMLRPC call failed")
+	}
+	return nil
+}
+
+// AddTorrent adds a new torrent by the torrent files data and starts the torrent
 func (r *RTorrent) AddTorrent(data []byte) error {
 	_, err := r.xmlrpcClient.Call("load.raw_start", "", data)
 	if err != nil {
