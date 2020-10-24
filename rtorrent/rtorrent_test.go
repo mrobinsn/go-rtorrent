@@ -191,7 +191,8 @@ func TestRTorrent(t *testing.T) {
 		})
 
 		t.Run("by url (stopped)", func(t *testing.T) {
-			err := client.AddStopped("http://releases.ubuntu.com/19.04/ubuntu-19.04-live-server-amd64.iso.torrent")
+			label := DLabel.SetValue("test-label")
+			err := client.AddStopped("http://releases.ubuntu.com/19.04/ubuntu-19.04-live-server-amd64.iso.torrent", label)
 			require.NoError(t, err)
 
 			t.Run("get torrent", func(t *testing.T) {
@@ -215,7 +216,7 @@ func TestRTorrent(t *testing.T) {
 				require.Len(t, torrents, 1)
 				require.Equal(t, "B7B0FBAB74A85D4AC170662C645982A862826455", torrents[0].Hash)
 				require.Equal(t, "ubuntu-19.04-live-server-amd64.iso", torrents[0].Name)
-				require.Equal(t, "", torrents[0].Label)
+				require.Equal(t, label.Value, torrents[0].Label)
 				require.Equal(t, 784334848, torrents[0].Size)
 				//no path yet since the torrent is stopped
 				require.Equal(t, "", torrents[0].Path)
@@ -345,7 +346,8 @@ func TestRTorrent(t *testing.T) {
 			require.NoError(t, err)
 			require.NotEmpty(t, b)
 
-			err = client.AddTorrentStopped(b)
+			label := DLabel.SetValue("test-label")
+			err = client.AddTorrentStopped(b, label)
 			require.NoError(t, err)
 
 			t.Run("get torrent", func(t *testing.T) {
@@ -358,7 +360,7 @@ func TestRTorrent(t *testing.T) {
 				require.Len(t, torrents, 1)
 				require.Equal(t, "36C67464C37A83478CEFF54932B5A9BDDEA636F3", torrents[0].Hash)
 				require.Equal(t, "ubuntu-20.04.1-live-server-amd64.iso", torrents[0].Name)
-				require.Equal(t, "", torrents[0].Label)
+				require.Equal(t, label.Value, torrents[0].Label)
 				require.Equal(t, 958398464, torrents[0].Size)
 
 				t.Run("delete torrent", func(t *testing.T) {
