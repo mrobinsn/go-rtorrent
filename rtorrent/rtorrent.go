@@ -83,37 +83,61 @@ func (r *RTorrent) WithHTTPClient(client *http.Client) *RTorrent {
 }
 
 // AddStopped adds a new torrent by URL in a stopped state
-func (r *RTorrent) AddStopped(url string) error {
-	_, err := r.xmlrpcClient.Call("load.normal", "", url)
-	if err != nil {
-		return errors.Wrap(err, "load.normal XMLRPC call failed")
-	}
-	return nil
+//
+// extraArgs can be any valid rTorrent rpc command. For instance:
+//
+// Adds the Torrent by URL (stopepd) and sets the label on the torrent
+//  AddStopped("some-url", "d.custom1.set=\"my-label\"")
+//
+// Adds the Torrent by URL (stopped) and  sets the label and base path
+//  AddStopped("some-url", "d.custom1.set=\"my-label\"", "d.base_path=\"/some/valid/path\"")
+func (r *RTorrent) AddStopped(url string, extraArgs ...interface{}) error {
+	return r.add("load.normal", []interface{}{url, extraArgs})
 }
 
 // Add adds a new torrent by URL and starts the torrent
-func (r *RTorrent) Add(url string) error {
-	_, err := r.xmlrpcClient.Call("load.start", "", url)
-	if err != nil {
-		return errors.Wrap(err, "load.start XMLRPC call failed")
-	}
-	return nil
+//
+// extraArgs can be any valid rTorrent rpc command. For instance:
+//
+// Adds the Torrent by URL and sets the label on the torrent
+//  Add("some-url", "d.custom1.set=\"my-label\"")
+//
+// Adds the Torrent by URL and  sets the label as well as base path
+//  Add("some-url", "d.custom1.set=\"my-label\"", "d.base_path=\"/some/valid/path\"")
+func (r *RTorrent) Add(url string, extraArgs ...interface{}) error {
+	return r.add("load.start", []interface{}{url, extraArgs})
 }
 
 // AddTorrentStopped adds a new torrent by the torrent files data but does not start the torrent
-func (r *RTorrent) AddTorrentStopped(data []byte) error {
-	_, err := r.xmlrpcClient.Call("load.raw", "", data)
-	if err != nil {
-		return errors.Wrap(err, "load.raw XMLRPC call failed")
-	}
-	return nil
+//
+// extraArgs can be any valid rTorrent rpc command. For instance:
+//
+// Adds the Torrent file (stopped) and sets the label on the torrent
+//  Add(fileData, "d.custom1.set=\"my-label\"")
+//
+// Adds the Torrent file and (stopped) sets the label and base path
+//  Add(fileData, "d.custom1.set=\"my-label\"", "d.base_path=\"/some/valid/path\"")
+func (r *RTorrent) AddTorrentStopped(data []byte, extraArgs ...interface{}) error {
+	return r.add("load.raw", []interface{}{data, extraArgs})
 }
 
 // AddTorrent adds a new torrent by the torrent files data and starts the torrent
-func (r *RTorrent) AddTorrent(data []byte) error {
-	_, err := r.xmlrpcClient.Call("load.raw_start", "", data)
+//
+// extraArgs can be any valid rTorrent rpc command. For instance:
+//
+// Adds the Torrent file and sets the label on the torrent
+//  Add(fileData, "d.custom1.set=\"my-label\"")
+//
+// Adds the Torrent file and  sets the label and base path
+//  Add(fileData, "d.custom1.set=\"my-label\"", "d.base_path=\"/some/valid/path\"")
+func (r *RTorrent) AddTorrent(data []byte, extraArgs ...interface{}) error {
+	return r.add("load.raw_start", []interface{}{data, extraArgs})
+}
+
+func (r *RTorrent) add(cmd string, args ...interface{}) error {
+	_, err := r.xmlrpcClient.Call(cmd, "", args)
 	if err != nil {
-		return errors.Wrap(err, "load.raw_start XMLRPC call failed")
+		return errors.Wrap(err, fmt.Sprintf("%s XMLRPC call failed", cmd))
 	}
 	return nil
 }
