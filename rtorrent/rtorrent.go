@@ -70,7 +70,7 @@ const (
 	// DLabel represents the label of a "Downloading Item"
 	DLabel Field = "d.custom1"
 	// DSizeInBytes represents the size in bytes of a "Downloading Item"
-	DSizeInBytes Field = "d.syze_bytes"
+	DSizeInBytes Field = "d.size_bytes"
 	// DHash represents the hash of a "Downloading Item"
 	DHash Field = "d.hash"
 	// DBasePath represents the base path of a "Downloading Item"
