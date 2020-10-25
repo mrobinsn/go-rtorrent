@@ -14,6 +14,12 @@ type RTorrent struct {
 	xmlrpcClient *xmlrpc.Client
 }
 
+// FieldValue contains the Field and Value of an attribute on a rTorrent
+type FieldValue struct {
+	Field Field
+	Value string
+}
+
 // Torrent represents a torrent in rTorrent
 type Torrent struct {
 	Hash      string
@@ -41,6 +47,9 @@ type File struct {
 	Size int
 }
 
+// Field represents a attribute on a RTorrent entity that can be queried or set
+type Field string
+
 // View represents a "view" within RTorrent
 type View string
 
@@ -55,7 +64,56 @@ const (
 	ViewHashing View = "hashing"
 	// ViewSeeding represents the "seeding" view, containing only torrents that are currently seeding
 	ViewSeeding View = "seeding"
+
+	// DName represents the name of a "Downloading Items"
+	DName Field = "d.name"
+	// DLabel represents the label of a "Downloading Item"
+	DLabel Field = "d.custom1"
+	// DSizeInBytes represents the size in bytes of a "Downloading Item"
+	DSizeInBytes Field = "d.size_bytes"
+	// DHash represents the hash of a "Downloading Item"
+	DHash Field = "d.hash"
+	// DBasePath represents the base path of a "Downloading Item"
+	DBasePath Field = "d.base_path"
+	// DIsActive represents whether a "Downloading Item" is active or not
+	DIsActive Field = "d.is_active"
+	// DRatio represents the ratio of a "Downloading Item"
+	DRatio Field = "d.ratio"
+	// DComplete represents whether the "Downloading Item" is complete or not
+	DComplete Field = "d.complete"
+	// DCompletedBytes represents the total of completed bytes of the "Downloading Item"
+	DCompletedBytes Field = "d.completed_bytes"
+	// DDownRate represents the download rate of the "Downloading Item"
+	DDownRate Field = "d.down.rate"
+	// DUpRate represents the upload rate of the "Downloading Item"
+	DUpRate Field = "d.up.rate"
+
+	// FPath represents the path of a "File Item"
+	FPath Field = "f.path"
+	// FSizeInBytes represents the size in bytes of a "File Item"
+	FSizeInBytes Field = "f.size_bytes"
 )
+
+// Query converts the field to a string which allows it to be queried
+// Example:
+//  DName.Query() // returns "d.name="
+func (f Field) Query() string {
+	return fmt.Sprintf("%s=", f)
+}
+
+// SetValue returns a FieldValue struct which can be used to set the field on a particular item in rTorrent to the specified value
+func (f Field) SetValue(value string) *FieldValue {
+	return &FieldValue{f, value}
+}
+
+// Cmd returns the representation of the field which allows it to be used a command with RTorrent
+func (f Field) Cmd() string {
+	return string(f)
+}
+
+func (f *FieldValue) String() string {
+	return fmt.Sprintf("%s.set=\"%s\"", f.Field, f.Value)
+}
 
 // Pretty returns a formatted string representing this Torrent
 func (t *Torrent) Pretty() string {
@@ -83,37 +141,82 @@ func (r *RTorrent) WithHTTPClient(client *http.Client) *RTorrent {
 }
 
 // AddStopped adds a new torrent by URL in a stopped state
-func (r *RTorrent) AddStopped(url string) error {
-	_, err := r.xmlrpcClient.Call("load.normal", "", url)
-	if err != nil {
-		return errors.Wrap(err, "load.normal XMLRPC call failed")
-	}
-	return nil
+//
+// extraArgs can be any valid rTorrent rpc command. For instance:
+//
+// Adds the Torrent by URL (stopped) and sets the label on the torrent
+//  AddStopped("some-url", &FieldValue{"d.custom1", "my-label"})
+// Or:
+//  AddStopped("some-url", DLabel.SetValue("my-label"))
+//
+// Adds the Torrent by URL (stopped) and  sets the label and base path
+//  AddStopped("some-url", &FieldValue{"d.custom1", "my-label"}, &FiedValue{"d.base_path", "/some/valid/path"})
+// Or:
+//  AddStopped("some-url", DLabel.SetValue("my-label"), DBasePath.SetValue("/some/valid/path"))
+func (r *RTorrent) AddStopped(url string, extraArgs ...*FieldValue) error {
+	return r.add("load.normal", []byte(url), extraArgs...)
 }
 
 // Add adds a new torrent by URL and starts the torrent
-func (r *RTorrent) Add(url string) error {
-	_, err := r.xmlrpcClient.Call("load.start", "", url)
-	if err != nil {
-		return errors.Wrap(err, "load.start XMLRPC call failed")
-	}
-	return nil
+//
+// extraArgs can be any valid rTorrent rpc command. For instance:
+//
+// Adds the Torrent by URL and sets the label on the torrent
+//  Add("some-url", "d.custom1.set=\"my-label\"")
+// Or:
+//  Add("some-url", DLabel.SetValue("my-label"))
+//
+// Adds the Torrent by URL and  sets the label as well as base path
+//  Add("some-url", "d.custom1.set=\"my-label\"", "d.base_path=\"/some/valid/path\"")
+// Or:
+//  Add("some-url", DLabel.SetValue("my-label"), DBasePath.SetValue("/some/valid/path"))
+func (r *RTorrent) Add(url string, extraArgs ...*FieldValue) error {
+	return r.add("load.start", []byte(url), extraArgs...)
 }
 
 // AddTorrentStopped adds a new torrent by the torrent files data but does not start the torrent
-func (r *RTorrent) AddTorrentStopped(data []byte) error {
-	_, err := r.xmlrpcClient.Call("load.raw", "", data)
-	if err != nil {
-		return errors.Wrap(err, "load.raw XMLRPC call failed")
-	}
-	return nil
+//
+// extraArgs can be any valid rTorrent rpc command. For instance:
+//
+// Adds the Torrent file (stopped) and sets the label on the torrent
+//  AddTorrentStopped(fileData, "d.custom1.set=\"my-label\"")
+// Or:
+//  AddTorrentStopped(fileData, DLabel.SetValue("my-label"))
+//
+// Adds the Torrent file and (stopped) sets the label and base path
+//  AddTorrentStopped(fileData, "d.custom1.set=\"my-label\"", "d.base_path=\"/some/valid/path\"")
+// Or:
+//  AddTorrentStopped(fileData, DLabel.SetValue("my-label"), DBasePath.SetValue("/some/valid/path"))
+func (r *RTorrent) AddTorrentStopped(data []byte, extraArgs ...*FieldValue) error {
+	return r.add("load.raw", data, extraArgs...)
 }
 
 // AddTorrent adds a new torrent by the torrent files data and starts the torrent
-func (r *RTorrent) AddTorrent(data []byte) error {
-	_, err := r.xmlrpcClient.Call("load.raw_start", "", data)
+//
+// extraArgs can be any valid rTorrent rpc command. For instance:
+//
+// Adds the Torrent file and sets the label on the torrent
+//  Add(fileData, "d.custom1.set=\"my-label\"")
+// Or:
+//  AddTorrent(fileData, DLabel.SetValue("my-label"))
+//
+// Adds the Torrent file and  sets the label and base path
+//  Add(fileData, "d.custom1.set=\"my-label\"", "d.base_path=\"/some/valid/path\"")
+// Or:
+//  AddTorrent(fileData, DLabel.SetValue("my-label"), DBasePath.SetValue("/some/valid/path"))
+func (r *RTorrent) AddTorrent(data []byte, extraArgs ...*FieldValue) error {
+	return r.add("load.raw_start", data, extraArgs...)
+}
+
+func (r *RTorrent) add(cmd string, data []byte, extraArgs ...*FieldValue) error {
+	args := []interface{}{data}
+	for _, v := range extraArgs {
+		args = append(args, v.String())
+	}
+
+	_, err := r.xmlrpcClient.Call(cmd, "", args)
 	if err != nil {
-		return errors.Wrap(err, "load.raw_start XMLRPC call failed")
+		return errors.Wrap(err, fmt.Sprintf("%s XMLRPC call failed", cmd))
 	}
 	return nil
 }
@@ -210,7 +313,7 @@ func (r *RTorrent) UpRate() (int, error) {
 
 // GetTorrents returns all of the torrents reported by this RTorrent instance
 func (r *RTorrent) GetTorrents(view View) ([]Torrent, error) {
-	args := []interface{}{"", string(view), "d.name=", "d.size_bytes=", "d.hash=", "d.custom1=", "d.base_path=", "d.is_active=", "d.complete=", "d.ratio="}
+	args := []interface{}{"", string(view), DName.Query(), DSizeInBytes.Query(), DHash.Query(), DLabel.Query(), DBasePath.Query(), DIsActive.Query(), DComplete.Query(), DRatio.Query()}
 	results, err := r.xmlrpcClient.Call("d.multicall2", args...)
 	var torrents []Torrent
 	if err != nil {
@@ -287,7 +390,7 @@ func (r *RTorrent) Delete(t Torrent) error {
 
 // GetFiles returns all of the files for a given `Torrent`
 func (r *RTorrent) GetFiles(t Torrent) ([]File, error) {
-	args := []interface{}{t.Hash, 0, "f.path=", "f.size_bytes="}
+	args := []interface{}{t.Hash, 0, FPath.Query(), FSizeInBytes.Query()}
 	results, err := r.xmlrpcClient.Call("f.multicall", args...)
 	var files []File
 	if err != nil {
