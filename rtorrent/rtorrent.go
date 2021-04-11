@@ -3,6 +3,7 @@ package rtorrent
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/mrobinsn/go-rtorrent/xmlrpc"
 	"github.com/pkg/errors"
@@ -29,6 +30,9 @@ type Torrent struct {
 	Label     string
 	Completed bool
 	Ratio     float64
+	Created   time.Time
+	Started   time.Time
+	Finished  time.Time
 }
 
 // Status represents the status of a torrent
@@ -87,6 +91,12 @@ const (
 	DDownRate Field = "d.down.rate"
 	// DUpRate represents the upload rate of the "Downloading Item"
 	DUpRate Field = "d.up.rate"
+	// DCreationTime represents the date the torrent was created
+	DCreationTime Field = "d.creation_date"
+	// DFinishedTime represents the date the torrent finished downloading
+	DFinishedTime Field = "d.timestamp.finished"
+	// DStartedTime represents the date the torrent started downloading
+	DStartedTime Field = "d.timestamp.started"
 
 	// FPath represents the path of a "File Item"
 	FPath Field = "f.path"
@@ -313,7 +323,7 @@ func (r *RTorrent) UpRate() (int, error) {
 
 // GetTorrents returns all of the torrents reported by this RTorrent instance
 func (r *RTorrent) GetTorrents(view View) ([]Torrent, error) {
-	args := []interface{}{"", string(view), DName.Query(), DSizeInBytes.Query(), DHash.Query(), DLabel.Query(), DBasePath.Query(), DIsActive.Query(), DComplete.Query(), DRatio.Query()}
+	args := []interface{}{"", string(view), DName.Query(), DSizeInBytes.Query(), DHash.Query(), DLabel.Query(), DBasePath.Query(), DIsActive.Query(), DComplete.Query(), DRatio.Query(), DCreationTime.Query(), DFinishedTime.Query(), DStartedTime.Query()}
 	results, err := r.xmlrpcClient.Call("d.multicall2", args...)
 	var torrents []Torrent
 	if err != nil {
@@ -330,6 +340,9 @@ func (r *RTorrent) GetTorrents(view View) ([]Torrent, error) {
 				Label:     torrentData[3].(string),
 				Completed: torrentData[6].(int) > 0,
 				Ratio:     float64(torrentData[7].(int)) / float64(1000),
+				Created:   time.Unix(int64(torrentData[8].(int)), 0),
+				Finished:  time.Unix(int64(torrentData[9].(int)), 0),
+				Started:   time.Unix(int64(torrentData[10].(int)), 0),
 			})
 		}
 	}
@@ -376,6 +389,25 @@ func (r *RTorrent) GetTorrent(hash string) (Torrent, error) {
 		return t, errors.Wrap(err, "d.ratio XMLRPC call failed")
 	}
 	t.Ratio = float64(results.([]interface{})[0].(int)) / float64(1000)
+	// Created
+	results, err = r.xmlrpcClient.Call(string(DCreationTime), t.Hash)
+	if err != nil {
+		return t, errors.Wrap(err, fmt.Sprintf("%s XMLRPC call failed", string(DCreationTime)))
+	}
+	t.Created = time.Unix(int64(results.([]interface{})[0].(int)), 0)
+	// Finished
+	results, err = r.xmlrpcClient.Call(string(DFinishedTime), t.Hash)
+	if err != nil {
+		return t, errors.Wrap(err, fmt.Sprintf("%s XMLRPC call failed", string(DFinishedTime)))
+	}
+	t.Finished = time.Unix(int64(results.([]interface{})[0].(int)), 0)
+	// Started
+	results, err = r.xmlrpcClient.Call(string(DStartedTime), t.Hash)
+	if err != nil {
+		return t, errors.Wrap(err, fmt.Sprintf("%s XMLRPC call failed", string(DStartedTime)))
+	}
+	t.Created = time.Unix(int64(results.([]interface{})[0].(int)), 0)
+
 	return t, nil
 }
 
