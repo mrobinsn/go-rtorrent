@@ -493,3 +493,87 @@ func (r *RTorrent) GetStatus(t Torrent) (Status, error) {
 	s.Size = results.([]interface{})[0].(int)
 	return s, nil
 }
+
+// StartTorrent starts the torrent
+func (r *RTorrent) StartTorrent(t Torrent) error {
+	_, err := r.xmlrpcClient.Call("d.start", t.Hash)
+	if err != nil {
+		return errors.Wrap(err, "d.start XMLRPC call failed")
+	}
+	return nil
+}
+
+// StopTorrent stops the torrent
+func (r *RTorrent) StopTorrent(t Torrent) error {
+	_, err := r.xmlrpcClient.Call("d.stop", t.Hash)
+	if err != nil {
+		return errors.Wrap(err, "d.stop XMLRPC call failed")
+	}
+	return nil
+}
+
+// CloseTorrent closes the torrent
+func (r *RTorrent) CloseTorrent(t Torrent) error {
+	_, err := r.xmlrpcClient.Call("d.close", t.Hash)
+	if err != nil {
+		return errors.Wrap(err, "d.close XMLRPC call failed")
+	}
+	return nil
+}
+
+// OpenTorrent opens the torrent
+func (r *RTorrent) OpenTorrent(t Torrent) error {
+	_, err := r.xmlrpcClient.Call("d.open", t.Hash)
+	if err != nil {
+		return errors.Wrap(err, "d.open XMLRPC call failed")
+	}
+	return nil
+}
+
+// PauseTorrent pauses the torrent
+func (r *RTorrent) PauseTorrent(t Torrent) error {
+	_, err := r.xmlrpcClient.Call("d.pause", t.Hash)
+	if err != nil {
+		return errors.Wrap(err, "d.pause XMLRPC call failed")
+	}
+	return nil
+}
+
+// ResumeTorrent resumes the torrent
+func (r *RTorrent) ResumeTorrent(t Torrent) error {
+	_, err := r.xmlrpcClient.Call("d.resume", t.Hash)
+	if err != nil {
+		return errors.Wrap(err, "d.resume XMLRPC call failed")
+	}
+	return nil
+}
+
+// IsActive checks if the torrent is active
+func (r *RTorrent) IsActive(t Torrent) (bool, error) {
+	results, err := r.xmlrpcClient.Call("d.is_active", t.Hash)
+	if err != nil {
+		return false, errors.Wrap(err, "d.is_active XMLRPC call failed")
+	}
+	// active = 1; inactive = 0
+	return results.([]interface{})[0].(int) == 1, nil
+}
+
+// IsOpen checks if the torrent is open
+func (r *RTorrent) IsOpen(t Torrent) (bool, error) {
+	results, err := r.xmlrpcClient.Call("d.is_open", t.Hash)
+	if err != nil {
+		return false, errors.Wrap(err, "d.is_open XMLRPC call failed")
+	}
+	// open = 1; closed = 0
+	return results.([]interface{})[0].(int) == 1, nil
+}
+
+// State returns the state that the torrent is into
+// It returns: 0 for stopped, 1 for started/paused
+func (r *RTorrent) State(t Torrent) (int, error) {
+	results, err := r.xmlrpcClient.Call("d.state", t.Hash)
+	if err != nil {
+		return 0, errors.Wrap(err, "d.state XMLRPC call failed")
+	}
+	return results.([]interface{})[0].(int), nil
+}

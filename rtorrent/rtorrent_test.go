@@ -233,6 +233,169 @@ func TestRTorrent(t *testing.T) {
 					require.NotZero(t, status.Size)
 				})
 
+				t.Run("start torrent", func(t *testing.T) {
+					err = client.StartTorrent(torrents[0])
+					require.NoError(t, err)
+
+					t.Run("check if started", func(t *testing.T) {
+						<-time.After(time.Second * 30)
+
+						isOpen, err := client.IsOpen(torrents[0])
+						require.NoError(t, err)
+						require.True(t, isOpen)
+
+						isActive, err := client.IsActive(torrents[0])
+						require.NoError(t, err)
+						require.True(t, isActive)
+
+						state, err := client.State(torrents[0])
+						require.NoError(t, err)
+						require.Equal(t, 1, state)
+					})
+
+					t.Run("pause torrent", func(t *testing.T) {
+						err := client.PauseTorrent(torrents[0])
+						require.NoError(t, err)
+
+						isOpen, err := client.IsOpen(torrents[0])
+						require.NoError(t, err)
+						require.True(t, isOpen)
+
+						isActive, err := client.IsActive(torrents[0])
+						require.NoError(t, err)
+						require.False(t, isActive)
+
+						state, err := client.State(torrents[0])
+						require.NoError(t, err)
+						require.Equal(t, 1, state)
+					})
+
+					t.Run("resume torrent", func(t *testing.T) {
+						err := client.ResumeTorrent(torrents[0])
+						require.NoError(t, err)
+
+						<-time.After(time.Second * 5)
+						isOpen, err := client.IsOpen(torrents[0])
+						require.NoError(t, err)
+						require.True(t, isOpen)
+
+						isActive, err := client.IsActive(torrents[0])
+						require.NoError(t, err)
+						require.True(t, isActive)
+
+						state, err := client.State(torrents[0])
+						require.NoError(t, err)
+						require.Equal(t, 1, state)
+					})
+
+				})
+
+				t.Run("stop torrent", func(t *testing.T) {
+					err = client.StopTorrent(torrents[0])
+					require.NoError(t, err)
+
+					t.Run("check if stopped", func(t *testing.T) {
+						<-time.After(time.Second * 10)
+						isOpen, err := client.IsOpen(torrents[0])
+						require.NoError(t, err)
+						require.True(t, isOpen)
+
+						isActive, err := client.IsActive(torrents[0])
+						require.NoError(t, err)
+						require.False(t, isActive)
+
+						state, err := client.State(torrents[0])
+						require.NoError(t, err)
+						require.Equal(t, 0, state)
+					})
+				})
+
+				t.Run("close torrent", func(t *testing.T) {
+					err = client.CloseTorrent(torrents[0])
+					require.NoError(t, err)
+
+					t.Run("check if closed", func(t *testing.T) {
+						var isOpen, isActive bool
+						var state, retries int = 0, 10
+						for i := 0; i <= retries; i++ {
+							<-time.After(time.Second)
+							isOpen, err = client.IsOpen(torrents[0])
+							require.NoError(t, err)
+
+							isActive, err = client.IsActive(torrents[0])
+							require.NoError(t, err)
+
+							state, err = client.State(torrents[0])
+							require.NoError(t, err)
+
+							if !isOpen && !isActive && state == 0 {
+								break
+							}
+
+							if i == retries {
+								require.NoError(t, errors.Errorf("torrent did not delete in time"))
+							}
+						}
+						require.False(t, isOpen)
+
+						isActive, err := client.IsActive(torrents[0])
+						require.NoError(t, err)
+						require.False(t, isActive)
+
+						state, err := client.State(torrents[0])
+						require.NoError(t, err)
+						require.Equal(t, 0, state)
+					})
+				})
+
+				t.Run("open torrent", func(t *testing.T) {
+					err = client.OpenTorrent(torrents[0])
+					require.NoError(t, err)
+
+					t.Run("check if open", func(t *testing.T) {
+						var isOpen bool
+						var retries int = 10
+						for i := 0; i <= retries; i++ {
+							<-time.After(time.Second)
+							isOpen, err = client.IsOpen(torrents[0])
+							require.NoError(t, err)
+
+							if isOpen {
+								break
+							}
+
+							if i == retries {
+								require.NoError(t, errors.Errorf("torrent did not delete in time"))
+							}
+						}
+						require.True(t, isOpen)
+					})
+				})
+
+				t.Run("re-close torrent", func(t *testing.T) {
+					err = client.OpenTorrent(torrents[0])
+					require.NoError(t, err)
+
+					t.Run("check if open", func(t *testing.T) {
+						var isOpen bool
+						var retries int = 10
+						for i := 0; i <= retries; i++ {
+							<-time.After(time.Second)
+							isOpen, err = client.IsOpen(torrents[0])
+							require.NoError(t, err)
+
+							if isOpen {
+								break
+							}
+
+							if i == retries {
+								require.NoError(t, errors.Errorf("torrent did not delete in time"))
+							}
+						}
+						require.True(t, isOpen)
+					})
+				})
+
 				t.Run("delete torrent", func(t *testing.T) {
 					err := client.Delete(torrents[0])
 					require.NoError(t, err)
