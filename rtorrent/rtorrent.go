@@ -79,6 +79,8 @@ const (
 	DHash Field = "d.hash"
 	// DBasePath represents the base path of a "Downloading Item"
 	DBasePath Field = "d.base_path"
+	// DDirectory represents the directory of a "Downloading Item"
+	DDirectory Field = "d.directory"
 	// DIsActive represents whether a "Downloading Item" is active or not
 	DIsActive Field = "d.is_active"
 	// DRatio represents the ratio of a "Downloading Item"
@@ -323,7 +325,7 @@ func (r *RTorrent) UpRate() (int, error) {
 
 // GetTorrents returns all of the torrents reported by this RTorrent instance
 func (r *RTorrent) GetTorrents(view View) ([]Torrent, error) {
-	args := []interface{}{"", string(view), DName.Query(), DSizeInBytes.Query(), DHash.Query(), DLabel.Query(), DBasePath.Query(), DIsActive.Query(), DComplete.Query(), DRatio.Query(), DCreationTime.Query(), DFinishedTime.Query(), DStartedTime.Query()}
+	args := []interface{}{"", string(view), DName.Query(), DSizeInBytes.Query(), DHash.Query(), DLabel.Query(), DDirectory.Query(), DIsActive.Query(), DComplete.Query(), DRatio.Query(), DCreationTime.Query(), DFinishedTime.Query(), DStartedTime.Query()}
 	results, err := r.xmlrpcClient.Call("d.multicall2", args...)
 	var torrents []Torrent
 	if err != nil {
@@ -372,9 +374,9 @@ func (r *RTorrent) GetTorrent(hash string) (Torrent, error) {
 	}
 	t.Label = results.([]interface{})[0].(string)
 	// Path
-	results, err = r.xmlrpcClient.Call("d.base_path", t.Hash)
+	results, err = r.xmlrpcClient.Call("d.directory", t.Hash)
 	if err != nil {
-		return t, errors.Wrap(err, "d.base_path XMLRPC call failed")
+		return t, errors.Wrap(err, "d.directory XMLRPC call failed")
 	}
 	t.Path = results.([]interface{})[0].(string)
 	// Completed

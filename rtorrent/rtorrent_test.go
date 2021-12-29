@@ -218,8 +218,7 @@ func TestRTorrent(t *testing.T) {
 				require.Equal(t, "Fedora-i3-Live-x86_64-35", torrents[0].Name)
 				require.Equal(t, label.Value, torrents[0].Label)
 				require.Equal(t, 1437206706, torrents[0].Size)
-				//no path yet since the torrent is stopped
-				require.Equal(t, "", torrents[0].Path)
+				require.Equal(t, "/downloads/temp/Fedora-i3-Live-x86_64-35", torrents[0].Path)
 				require.False(t, torrents[0].Completed)
 
 				t.Run("get status", func(t *testing.T) {
