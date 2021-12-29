@@ -1,0 +1,20 @@
+version: 2.1
+jobs:
+  build:
+    docker:
+      - image: cimg/go:1.17
+      - image: crazymax/rtorrent-rutorrent:latest
+    steps:
+      - checkout
+      - run:
+          name: Install Goveralls
+          command: go install github.com/mattn/goveralls@latest
+      - run:
+          name: Wait for rutorrent
+          command: dockerize -wait tcp://localhost:8080 -timeout 1m && dockerize -wait tcp://localhost:8000 -timeout 1m
+      - run:
+          name: Go vet
+          command: go vet ./...
+      - run:
+          name: Run tests
+          command: goveralls -race -v -show -service=circle-ci

@@ -14,7 +14,7 @@ func TestRTorrent(t *testing.T) {
 		These tests rely on a local instance of rtorrent to be running in a clean state.
 		Use the included `test.sh` script to run these tests.
 	*/
-	client := New("http://localhost/RPC2", false)
+	client := New("http://localhost:8000", false)
 
 	t.Run("get ip", func(t *testing.T) {
 		_, err := client.IP()
