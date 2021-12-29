@@ -60,7 +60,7 @@ func TestRTorrent(t *testing.T) {
 
 	t.Run("add", func(t *testing.T) {
 		t.Run("by url", func(t *testing.T) {
-			err := client.Add("https://torrent.ubuntu.com/releases/focal/release/live-server/ubuntu-20.04.2-live-server-arm64.iso.torrent")
+			err := client.Add("https://torrent.fedoraproject.org/torrents/Fedora-i3-Live-x86_64-35.torrent")
 			require.NoError(t, err)
 
 			t.Run("get torrent", func(t *testing.T) {
@@ -75,25 +75,25 @@ func TestRTorrent(t *testing.T) {
 					if len(torrents) > 0 {
 						break
 					}
-					if tries > 10 {
+					if tries > 30 {
 						require.NoError(t, errors.Errorf("torrent did not show up in time"))
 					}
 					tries++
 				}
 				require.NotEmpty(t, torrents)
 				require.Len(t, torrents, 1)
-				require.Equal(t, "B185765BE59BC56AB29A4860A5820863BF0512AD", torrents[0].Hash)
-				require.Equal(t, "ubuntu-20.04.2-live-server-arm64.iso", torrents[0].Name)
+				require.Equal(t, "299939CFF841ED7FFCA2B3C2A35711C12589632B", torrents[0].Hash)
+				require.Equal(t, "Fedora-i3-Live-x86_64-35", torrents[0].Name)
 				require.Equal(t, "", torrents[0].Label)
-				require.Equal(t, 1193754624, torrents[0].Size)
-				require.Equal(t, "/downloads/incoming/ubuntu-20.04.2-live-server-arm64.iso", torrents[0].Path)
+				require.Equal(t, 1437206706, torrents[0].Size)
+				require.Equal(t, "/downloads/incoming/Fedora-i3-Live-x86_64-35", torrents[0].Path)
 				require.False(t, torrents[0].Completed)
 
 				t.Run("get files", func(t *testing.T) {
 					files, err := client.GetFiles(torrents[0])
 					require.NoError(t, err)
 					require.NotEmpty(t, files)
-					require.Len(t, files, 1)
+					require.Len(t, files, 2)
 					for _, f := range files {
 						require.NotEmpty(t, f.Path)
 						require.NotZero(t, f.Size)
@@ -192,7 +192,7 @@ func TestRTorrent(t *testing.T) {
 
 		t.Run("by url (stopped)", func(t *testing.T) {
 			label := DLabel.SetValue("test-label")
-			err := client.AddStopped("https://torrent.ubuntu.com/releases/focal/release/live-server/ubuntu-20.04.2-live-server-arm64.iso.torrent", label)
+			err := client.AddStopped("https://torrent.fedoraproject.org/torrents/Fedora-i3-Live-x86_64-35.torrent", label)
 			require.NoError(t, err)
 
 			t.Run("get torrent", func(t *testing.T) {
@@ -207,17 +207,17 @@ func TestRTorrent(t *testing.T) {
 					if len(torrents) > 0 {
 						break
 					}
-					if tries > 10 {
+					if tries > 30 {
 						require.NoError(t, errors.Errorf("torrent did not show up in time"))
 					}
 					tries++
 				}
 				require.NotEmpty(t, torrents)
 				require.Len(t, torrents, 1)
-				require.Equal(t, "B185765BE59BC56AB29A4860A5820863BF0512AD", torrents[0].Hash)
-				require.Equal(t, "ubuntu-20.04.2-live-server-arm64.iso", torrents[0].Name)
+				require.Equal(t, "299939CFF841ED7FFCA2B3C2A35711C12589632B", torrents[0].Hash)
+				require.Equal(t, "Fedora-i3-Live-x86_64-35", torrents[0].Name)
 				require.Equal(t, label.Value, torrents[0].Label)
-				require.Equal(t, 1193754624, torrents[0].Size)
+				require.Equal(t, 1437206706, torrents[0].Size)
 				//no path yet since the torrent is stopped
 				require.Equal(t, "", torrents[0].Path)
 				require.False(t, torrents[0].Completed)
@@ -266,7 +266,7 @@ func TestRTorrent(t *testing.T) {
 		})
 
 		t.Run("with data", func(t *testing.T) {
-			b, err := ioutil.ReadFile("testdata/ubuntu-20.04.2-live-server-arm64.iso.torrent")
+			b, err := ioutil.ReadFile("testdata/Fedora-i3-Live-x86_64-35.torrent")
 			require.NoError(t, err)
 			require.NotEmpty(t, b)
 
@@ -285,25 +285,25 @@ func TestRTorrent(t *testing.T) {
 					if len(torrents) > 0 {
 						break
 					}
-					if tries > 10 {
+					if tries > 30 {
 						require.NoError(t, errors.Errorf("torrent did not show up in time"))
 					}
 					tries++
 				}
 				require.NotEmpty(t, torrents)
 				require.Len(t, torrents, 1)
-				require.Equal(t, "B185765BE59BC56AB29A4860A5820863BF0512AD", torrents[0].Hash)
-				require.Equal(t, "ubuntu-20.04.2-live-server-arm64.iso", torrents[0].Name)
+				require.Equal(t, "299939CFF841ED7FFCA2B3C2A35711C12589632B", torrents[0].Hash)
+				require.Equal(t, "Fedora-i3-Live-x86_64-35", torrents[0].Name)
 				require.Equal(t, "", torrents[0].Label)
-				require.Equal(t, 1193754624, torrents[0].Size)
-				require.Equal(t, "/downloads/incoming/ubuntu-20.04.2-live-server-arm64.iso", torrents[0].Path)
+				require.Equal(t, 1437206706, torrents[0].Size)
+				require.Equal(t, "/downloads/incoming/Fedora-i3-Live-x86_64-35", torrents[0].Path)
 				require.False(t, torrents[0].Completed)
 
 				t.Run("get files", func(t *testing.T) {
 					files, err := client.GetFiles(torrents[0])
 					require.NoError(t, err)
 					require.NotEmpty(t, files)
-					require.Len(t, files, 1)
+					require.Len(t, files, 2)
 					for _, f := range files {
 						require.NotEmpty(t, f.Path)
 						require.NotZero(t, f.Size)
@@ -342,7 +342,7 @@ func TestRTorrent(t *testing.T) {
 		})
 
 		t.Run("with data (stopped)", func(t *testing.T) {
-			b, err := ioutil.ReadFile("testdata/ubuntu-20.04.2-live-server-arm64.iso.torrent")
+			b, err := ioutil.ReadFile("testdata/Fedora-i3-Live-x86_64-35.torrent")
 			require.NoError(t, err)
 			require.NotEmpty(t, b)
 
@@ -358,10 +358,10 @@ func TestRTorrent(t *testing.T) {
 
 				require.NotEmpty(t, torrents)
 				require.Len(t, torrents, 1)
-				require.Equal(t, "B185765BE59BC56AB29A4860A5820863BF0512AD", torrents[0].Hash)
-				require.Equal(t, "ubuntu-20.04.2-live-server-arm64.iso", torrents[0].Name)
+				require.Equal(t, "299939CFF841ED7FFCA2B3C2A35711C12589632B", torrents[0].Hash)
+				require.Equal(t, "Fedora-i3-Live-x86_64-35", torrents[0].Name)
 				require.Equal(t, label.Value, torrents[0].Label)
-				require.Equal(t, 1193754624, torrents[0].Size)
+				require.Equal(t, 1437206706, torrents[0].Size)
 
 				t.Run("delete torrent", func(t *testing.T) {
 					err := client.Delete(torrents[0])
