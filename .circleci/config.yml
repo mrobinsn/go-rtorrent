@@ -17,4 +17,4 @@ jobs:
           command: go vet ./...
       - run:
           name: Run tests
-          command: goveralls -race -v -show -service=circle-ci
+          command: goveralls -race -v -show -service=circle-ci -repotoken=$COVERALLS_TOKEN
