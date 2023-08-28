@@ -61,7 +61,7 @@ func TestRTorrent(t *testing.T) {
 
 	t.Run("add", func(t *testing.T) {
 		t.Run("by url", func(t *testing.T) {
-			err := client.Add("https://torrent.fedoraproject.org/torrents/Fedora-i3-Live-x86_64-35.torrent")
+			err := client.Add("https://torrent.fedoraproject.org/torrents/Fedora-Budgie-Live-x86_64-38.torrent")
 			require.NoError(t, err)
 
 			t.Run("get torrent", func(t *testing.T) {
@@ -82,11 +82,11 @@ func TestRTorrent(t *testing.T) {
 				}
 				require.NotEmpty(t, torrents)
 				require.Len(t, torrents, 1)
-				require.Equal(t, "299939CFF841ED7FFCA2B3C2A35711C12589632B", torrents[0].Hash)
-				require.Equal(t, "Fedora-i3-Live-x86_64-35", torrents[0].Name)
+				require.Equal(t, "2B7F2F77B7DB10D6A0E8741B75F85296ED2ED5A1", torrents[0].Hash)
+				require.Equal(t, "Fedora-Budgie-Live-x86_64-38", torrents[0].Name)
 				require.Equal(t, "", torrents[0].Label)
-				require.Equal(t, 1437206706, torrents[0].Size)
-				require.Equal(t, "/downloads/temp/Fedora-i3-Live-x86_64-35", torrents[0].Path)
+				require.Equal(t, 1967301122, torrents[0].Size)
+				require.Equal(t, "/downloads/temp/Fedora-Budgie-Live-x86_64-38", torrents[0].Path)
 				require.False(t, torrents[0].Completed)
 
 				t.Run("get files", func(t *testing.T) {
@@ -97,6 +97,39 @@ func TestRTorrent(t *testing.T) {
 					for _, f := range files {
 						require.NotEmpty(t, f.Path)
 						require.NotZero(t, f.Size)
+					}
+				})
+
+				t.Run("reannounce trackers", func(t *testing.T) {
+					trackers, err := client.GetTrackers(torrents[0])
+					require.NoError(t, err)
+					require.NotEmpty(t, trackers)
+					require.Len(t, trackers, 2)
+					for _, tr := range trackers {
+						if tr.LastUpdated == 0 {
+							continue
+						}
+						require.NotEmpty(t, tr.Url)
+						require.NotZero(t, tr.LastUpdated)
+					}
+
+					// Some delay to properly check if it has worked
+					<-time.After(time.Second * 2)
+
+					err = client.ReAnnounce(torrents[0])
+					require.NoError(t, err)
+
+					// A delay is needed for it to get updated
+					<-time.After(time.Second * 2)
+
+					trackersAfter, err := client.GetTrackers(torrents[0])
+					require.Len(t, trackersAfter, 2)
+					for idx, tr := range trackersAfter {
+						if tr.LastUpdated == 0 {
+							continue
+						}
+						require.NotEmpty(t, tr.Url)
+						require.NotEqual(t, trackers[idx].LastUpdated, tr.LastUpdated)
 					}
 				})
 
@@ -189,7 +222,7 @@ func TestRTorrent(t *testing.T) {
 
 		t.Run("by url (stopped)", func(t *testing.T) {
 			label := DLabel.SetValue("test-label")
-			err := client.AddStopped("https://torrent.fedoraproject.org/torrents/Fedora-i3-Live-x86_64-35.torrent", label)
+			err := client.AddStopped("https://torrent.fedoraproject.org/torrents/Fedora-Budgie-Live-x86_64-38.torrent", label)
 			require.NoError(t, err)
 
 			t.Run("get torrent", func(t *testing.T) {
@@ -210,11 +243,11 @@ func TestRTorrent(t *testing.T) {
 				}
 				require.NotEmpty(t, torrents)
 				require.Len(t, torrents, 1)
-				require.Equal(t, "299939CFF841ED7FFCA2B3C2A35711C12589632B", torrents[0].Hash)
-				require.Equal(t, "Fedora-i3-Live-x86_64-35", torrents[0].Name)
+				require.Equal(t, "2B7F2F77B7DB10D6A0E8741B75F85296ED2ED5A1", torrents[0].Hash)
+				require.Equal(t, "Fedora-Budgie-Live-x86_64-38", torrents[0].Name)
 				require.Equal(t, label.Value, torrents[0].Label)
-				require.Equal(t, 1437206706, torrents[0].Size)
-				require.Equal(t, "/downloads/temp/Fedora-i3-Live-x86_64-35", torrents[0].Path)
+				require.Equal(t, 1967301122, torrents[0].Size)
+				require.Equal(t, "/downloads/temp/Fedora-Budgie-Live-x86_64-38", torrents[0].Path)
 				require.False(t, torrents[0].Completed)
 
 				t.Run("get status", func(t *testing.T) {
@@ -482,7 +515,7 @@ func TestRTorrent(t *testing.T) {
 		})
 
 		t.Run("with data", func(t *testing.T) {
-			b, err := ioutil.ReadFile("testdata/Fedora-i3-Live-x86_64-35.torrent")
+			b, err := ioutil.ReadFile("testdata/Fedora-Budgie-Live-x86_64-38.torrent")
 			require.NoError(t, err)
 			require.NotEmpty(t, b)
 
@@ -507,11 +540,11 @@ func TestRTorrent(t *testing.T) {
 				}
 				require.NotEmpty(t, torrents)
 				require.Len(t, torrents, 1)
-				require.Equal(t, "299939CFF841ED7FFCA2B3C2A35711C12589632B", torrents[0].Hash)
-				require.Equal(t, "Fedora-i3-Live-x86_64-35", torrents[0].Name)
+				require.Equal(t, "2B7F2F77B7DB10D6A0E8741B75F85296ED2ED5A1", torrents[0].Hash)
+				require.Equal(t, "Fedora-Budgie-Live-x86_64-38", torrents[0].Name)
 				require.Equal(t, "", torrents[0].Label)
-				require.Equal(t, 1437206706, torrents[0].Size)
-				require.Equal(t, "/downloads/temp/Fedora-i3-Live-x86_64-35", torrents[0].Path)
+				require.Equal(t, 1967301122, torrents[0].Size)
+				require.Equal(t, "/downloads/temp/Fedora-Budgie-Live-x86_64-38", torrents[0].Path)
 				require.False(t, torrents[0].Completed)
 
 				t.Run("get files", func(t *testing.T) {
@@ -556,7 +589,7 @@ func TestRTorrent(t *testing.T) {
 		})
 
 		t.Run("with data (stopped)", func(t *testing.T) {
-			b, err := ioutil.ReadFile("testdata/Fedora-i3-Live-x86_64-35.torrent")
+			b, err := ioutil.ReadFile("testdata/Fedora-Budgie-Live-x86_64-38.torrent")
 			require.NoError(t, err)
 			require.NotEmpty(t, b)
 
@@ -572,10 +605,10 @@ func TestRTorrent(t *testing.T) {
 
 				require.NotEmpty(t, torrents)
 				require.Len(t, torrents, 1)
-				require.Equal(t, "299939CFF841ED7FFCA2B3C2A35711C12589632B", torrents[0].Hash)
-				require.Equal(t, "Fedora-i3-Live-x86_64-35", torrents[0].Name)
+				require.Equal(t, "2B7F2F77B7DB10D6A0E8741B75F85296ED2ED5A1", torrents[0].Hash)
+				require.Equal(t, "Fedora-Budgie-Live-x86_64-38", torrents[0].Name)
 				require.Equal(t, label.Value, torrents[0].Label)
-				require.Equal(t, 1437206706, torrents[0].Size)
+				require.Equal(t, 1967301122, torrents[0].Size)
 
 				t.Run("delete torrent", func(t *testing.T) {
 					err := client.Delete(torrents[0])

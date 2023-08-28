@@ -51,6 +51,12 @@ type File struct {
 	Size int
 }
 
+// Tracker represents a tracker in rTorrent
+type Tracker struct {
+	Url         string
+	LastUpdated int
+}
+
 // Field represents a attribute on a RTorrent entity that can be queried or set
 type Field string
 
@@ -104,11 +110,17 @@ const (
 	FPath Field = "f.path"
 	// FSizeInBytes represents the size in bytes of a "File Item"
 	FSizeInBytes Field = "f.size_bytes"
+
+	// TUrl represents the URL of a "Tracker Item"
+	TUrl Field = "t.url"
+	// TActivityTimeLast represents the last time there was an attempt to announce to a "Tracker Item"
+	TActivityTimeLast Field = "t.activity_time_last"
 )
 
 // Query converts the field to a string which allows it to be queried
 // Example:
-//  DName.Query() // returns "d.name="
+//
+//	DName.Query() // returns "d.name="
 func (f Field) Query() string {
 	return fmt.Sprintf("%s=", f)
 }
@@ -157,14 +169,20 @@ func (r *RTorrent) WithHTTPClient(client *http.Client) *RTorrent {
 // extraArgs can be any valid rTorrent rpc command. For instance:
 //
 // Adds the Torrent by URL (stopped) and sets the label on the torrent
-//  AddStopped("some-url", &FieldValue{"d.custom1", "my-label"})
+//
+//	AddStopped("some-url", &FieldValue{"d.custom1", "my-label"})
+//
 // Or:
-//  AddStopped("some-url", DLabel.SetValue("my-label"))
+//
+//	AddStopped("some-url", DLabel.SetValue("my-label"))
 //
 // Adds the Torrent by URL (stopped) and  sets the label and base path
-//  AddStopped("some-url", &FieldValue{"d.custom1", "my-label"}, &FiedValue{"d.base_path", "/some/valid/path"})
+//
+//	AddStopped("some-url", &FieldValue{"d.custom1", "my-label"}, &FiedValue{"d.base_path", "/some/valid/path"})
+//
 // Or:
-//  AddStopped("some-url", DLabel.SetValue("my-label"), DBasePath.SetValue("/some/valid/path"))
+//
+//	AddStopped("some-url", DLabel.SetValue("my-label"), DBasePath.SetValue("/some/valid/path"))
 func (r *RTorrent) AddStopped(url string, extraArgs ...*FieldValue) error {
 	return r.add("load.normal", []byte(url), extraArgs...)
 }
@@ -174,14 +192,20 @@ func (r *RTorrent) AddStopped(url string, extraArgs ...*FieldValue) error {
 // extraArgs can be any valid rTorrent rpc command. For instance:
 //
 // Adds the Torrent by URL and sets the label on the torrent
-//  Add("some-url", "d.custom1.set=\"my-label\"")
+//
+//	Add("some-url", "d.custom1.set=\"my-label\"")
+//
 // Or:
-//  Add("some-url", DLabel.SetValue("my-label"))
+//
+//	Add("some-url", DLabel.SetValue("my-label"))
 //
 // Adds the Torrent by URL and  sets the label as well as base path
-//  Add("some-url", "d.custom1.set=\"my-label\"", "d.base_path=\"/some/valid/path\"")
+//
+//	Add("some-url", "d.custom1.set=\"my-label\"", "d.base_path=\"/some/valid/path\"")
+//
 // Or:
-//  Add("some-url", DLabel.SetValue("my-label"), DBasePath.SetValue("/some/valid/path"))
+//
+//	Add("some-url", DLabel.SetValue("my-label"), DBasePath.SetValue("/some/valid/path"))
 func (r *RTorrent) Add(url string, extraArgs ...*FieldValue) error {
 	return r.add("load.start", []byte(url), extraArgs...)
 }
@@ -191,14 +215,20 @@ func (r *RTorrent) Add(url string, extraArgs ...*FieldValue) error {
 // extraArgs can be any valid rTorrent rpc command. For instance:
 //
 // Adds the Torrent file (stopped) and sets the label on the torrent
-//  AddTorrentStopped(fileData, "d.custom1.set=\"my-label\"")
+//
+//	AddTorrentStopped(fileData, "d.custom1.set=\"my-label\"")
+//
 // Or:
-//  AddTorrentStopped(fileData, DLabel.SetValue("my-label"))
+//
+//	AddTorrentStopped(fileData, DLabel.SetValue("my-label"))
 //
 // Adds the Torrent file and (stopped) sets the label and base path
-//  AddTorrentStopped(fileData, "d.custom1.set=\"my-label\"", "d.base_path=\"/some/valid/path\"")
+//
+//	AddTorrentStopped(fileData, "d.custom1.set=\"my-label\"", "d.base_path=\"/some/valid/path\"")
+//
 // Or:
-//  AddTorrentStopped(fileData, DLabel.SetValue("my-label"), DBasePath.SetValue("/some/valid/path"))
+//
+//	AddTorrentStopped(fileData, DLabel.SetValue("my-label"), DBasePath.SetValue("/some/valid/path"))
 func (r *RTorrent) AddTorrentStopped(data []byte, extraArgs ...*FieldValue) error {
 	return r.add("load.raw", data, extraArgs...)
 }
@@ -208,14 +238,20 @@ func (r *RTorrent) AddTorrentStopped(data []byte, extraArgs ...*FieldValue) erro
 // extraArgs can be any valid rTorrent rpc command. For instance:
 //
 // Adds the Torrent file and sets the label on the torrent
-//  Add(fileData, "d.custom1.set=\"my-label\"")
+//
+//	Add(fileData, "d.custom1.set=\"my-label\"")
+//
 // Or:
-//  AddTorrent(fileData, DLabel.SetValue("my-label"))
+//
+//	AddTorrent(fileData, DLabel.SetValue("my-label"))
 //
 // Adds the Torrent file and  sets the label and base path
-//  Add(fileData, "d.custom1.set=\"my-label\"", "d.base_path=\"/some/valid/path\"")
+//
+//	Add(fileData, "d.custom1.set=\"my-label\"", "d.base_path=\"/some/valid/path\"")
+//
 // Or:
-//  AddTorrent(fileData, DLabel.SetValue("my-label"), DBasePath.SetValue("/some/valid/path"))
+//
+//	AddTorrent(fileData, DLabel.SetValue("my-label"), DBasePath.SetValue("/some/valid/path"))
 func (r *RTorrent) AddTorrent(data []byte, extraArgs ...*FieldValue) error {
 	return r.add("load.raw_start", data, extraArgs...)
 }
@@ -442,6 +478,26 @@ func (r *RTorrent) GetFiles(t Torrent) ([]File, error) {
 	return files, nil
 }
 
+// GetTrackers returns all of the files for a given `Torrent`
+func (r *RTorrent) GetTrackers(t Torrent) ([]Tracker, error) {
+	args := []interface{}{t.Hash, 0, TUrl.Query(), TActivityTimeLast.Query()}
+	results, err := r.xmlrpcClient.Call("t.multicall", args...)
+	var trackers []Tracker
+	if err != nil {
+		return trackers, errors.Wrap(err, "t.multicall XMLRPC call failed")
+	}
+	for _, outerResult := range results.([]interface{}) {
+		for _, innerResult := range outerResult.([]interface{}) {
+			trackerData := innerResult.([]interface{})
+			trackers = append(trackers, Tracker{
+				Url:         trackerData[0].(string),
+				LastUpdated: trackerData[1].(int),
+			})
+		}
+	}
+	return trackers, nil
+}
+
 // SetLabel sets the label on the given Torrent
 func (r *RTorrent) SetLabel(t Torrent, newLabel string) error {
 	t.Label = newLabel
@@ -544,6 +600,15 @@ func (r *RTorrent) ResumeTorrent(t Torrent) error {
 	_, err := r.xmlrpcClient.Call("d.resume", t.Hash)
 	if err != nil {
 		return errors.Wrap(err, "d.resume XMLRPC call failed")
+	}
+	return nil
+}
+
+// ReAnnounce manually triggers a tracker announce for the torrent
+func (r *RTorrent) ReAnnounce(t Torrent) error {
+	_, err := r.xmlrpcClient.Call("d.tracker_announce", t.Hash)
+	if err != nil {
+		return errors.Wrap(err, "d.tracker_announce XMLRPC call failed")
 	}
 	return nil
 }
