@@ -51,10 +51,24 @@ type File struct {
 	Size int
 }
 
+// TrackerType represents the different types of trackers found in rTorrent
+type TrackerType int
+
+// The rTorrent types with their respective number as returned by t.type
+const (
+	HTTP TrackerType = 1
+	UDP              = 2
+	DHT              = 3
+)
+
 // Tracker represents a tracker in rTorrent
 type Tracker struct {
-	Url         string
-	LastUpdated int
+	Url                 string
+	Enabled             bool
+	FailedCounter       int
+	Type                TrackerType
+	Peers               int
+	LastAnnounceAttempt time.Time
 }
 
 // Field represents a attribute on a RTorrent entity that can be queried or set
@@ -113,8 +127,16 @@ const (
 
 	// TUrl represents the URL of a "Tracker Item"
 	TUrl Field = "t.url"
-	// TActivityTimeLast represents the last time there was an attempt to announce to a "Tracker Item"
-	TActivityTimeLast Field = "t.activity_time_last"
+	// TIsEnabled represents if a "Tracker Item" is enabled
+	TIsEnabled Field = "t.is_enabled"
+	// TFailedCounter represents the number of failed requests of a "Tracker Item". Resets to 0 on success.
+	TFailedCounter Field = "t.failed_counter"
+	// TType represents the type of a "Tracker Item"
+	TType Field = "t.type"
+	// TPeers represents the total number of peers obtained with the last announce of a "Tracker Item"
+	TPeers Field = "t.latest_sum_peers"
+	// TLastAnnounceAttempt represents the last time there was an attempt to announce to a "Tracker Item"
+	TLastAnnounceAttempt Field = "t.activity_time_last"
 )
 
 // Query converts the field to a string which allows it to be queried
@@ -480,7 +502,7 @@ func (r *RTorrent) GetFiles(t Torrent) ([]File, error) {
 
 // GetTrackers returns all of the trackers for a given `Torrent`
 func (r *RTorrent) GetTrackers(t Torrent) ([]Tracker, error) {
-	args := []interface{}{t.Hash, 0, TUrl.Query(), TActivityTimeLast.Query()}
+	args := []interface{}{t.Hash, 0, TUrl.Query(), TIsEnabled.Query(), TFailedCounter.Query(), TType.Query(), TPeers.Query(), TLastAnnounceAttempt.Query()}
 	results, err := r.xmlrpcClient.Call("t.multicall", args...)
 	var trackers []Tracker
 	if err != nil {
@@ -490,8 +512,12 @@ func (r *RTorrent) GetTrackers(t Torrent) ([]Tracker, error) {
 		for _, innerResult := range outerResult.([]interface{}) {
 			trackerData := innerResult.([]interface{})
 			trackers = append(trackers, Tracker{
-				Url:         trackerData[0].(string),
-				LastUpdated: trackerData[1].(int),
+				Url:                 trackerData[0].(string),
+				Enabled:             trackerData[1].(int) != 0,
+				FailedCounter:       trackerData[2].(int),
+				Type:                TrackerType(trackerData[3].(int)),
+				Peers:               trackerData[4].(int),
+				LastAnnounceAttempt: time.Unix(int64(trackerData[5].(int)), 0),
 			})
 		}
 	}

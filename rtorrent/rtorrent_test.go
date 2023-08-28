@@ -100,36 +100,51 @@ func TestRTorrent(t *testing.T) {
 					}
 				})
 
+				t.Run("get trackers", func(t *testing.T) {
+					trackers, err := client.GetTrackers(torrents[0])
+					require.NoError(t, err)
+					require.NotEmpty(t, trackers)
+					require.Len(t, trackers, 2)
+
+					for _, tr := range trackers {
+						require.NotEmpty(t, tr.Url)
+						require.True(t, tr.Enabled)
+						require.NotZero(t, tr.Type)
+					}
+
+					require.Equal(t, trackers[0].Url, "http://torrent.fedoraproject.org:6969/announce")
+					require.Equal(t, trackers[0].Type, HTTP)
+
+					// Hard to test if tracker is experiencing instability
+					// require.Zero(t, trackers[0].FailedCounter)
+					// require.NotZero(t, trackers[0].Peers)
+					// require.NotZero(t, trackers[0].LastAnnounceAttempt.Unix())
+					require.Equal(t, trackers[1].Url, "dht://")
+				})
+
 				t.Run("reannounce trackers", func(t *testing.T) {
 					trackers, err := client.GetTrackers(torrents[0])
 					require.NoError(t, err)
 					require.NotEmpty(t, trackers)
 					require.Len(t, trackers, 2)
-					for _, tr := range trackers {
-						if tr.LastUpdated == 0 {
-							continue
+
+					lastAnnounced := trackers[0].LastAnnounceAttempt.Unix()
+
+					for i := 0; i <= retries; i++ {
+						<-time.After(time.Second)
+						err = client.ReAnnounce(torrents[0])
+						require.NoError(t, err)
+
+						trackers, err = client.GetTrackers(torrents[0])
+						require.NoError(t, err)
+
+						if trackers[0].LastAnnounceAttempt.Unix() != lastAnnounced {
+							break
 						}
-						require.NotEmpty(t, tr.Url)
-						require.NotZero(t, tr.LastUpdated)
-					}
 
-					// Some delay to properly check if it has worked
-					<-time.After(time.Second * 2)
-
-					err = client.ReAnnounce(torrents[0])
-					require.NoError(t, err)
-
-					// A delay is needed for it to get updated
-					<-time.After(time.Second * 2)
-
-					trackersAfter, err := client.GetTrackers(torrents[0])
-					require.Len(t, trackersAfter, 2)
-					for idx, tr := range trackersAfter {
-						if tr.LastUpdated == 0 {
-							continue
+						if i == retries {
+							require.NoError(t, errors.Errorf("reannounce did not work in time"))
 						}
-						require.NotEmpty(t, tr.Url)
-						require.NotEqual(t, trackers[idx].LastUpdated, tr.LastUpdated)
 					}
 				})
 
