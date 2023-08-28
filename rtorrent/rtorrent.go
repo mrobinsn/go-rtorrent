@@ -478,7 +478,7 @@ func (r *RTorrent) GetFiles(t Torrent) ([]File, error) {
 	return files, nil
 }
 
-// GetTrackers returns all of the files for a given `Torrent`
+// GetTrackers returns all of the trackers for a given `Torrent`
 func (r *RTorrent) GetTrackers(t Torrent) ([]Tracker, error) {
 	args := []interface{}{t.Hash, 0, TUrl.Query(), TActivityTimeLast.Query()}
 	results, err := r.xmlrpcClient.Call("t.multicall", args...)
